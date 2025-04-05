@@ -1,21 +1,39 @@
 import uuid
+from .database import get_connection
 
 class Task:
     STATUS_OPTIONS = {"todo", "in_progress", "done"}
 
-    def __init__(self, title, description=""):
-        # Generate a unique task identifier
-        self.id = str(uuid.uuid4())
+    def __init__(self, title, description="", status="todo", task_id=None):
+        self.id = task_id or str(uuid.uuid4())
         self.title = title
         self.description = description
-        self.status = "todo"
+        self.status = status
+
+    def save(self):
+        """Persist task to database."""
+        with get_connection() as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO tasks (id, title, description, status)
+                VALUES (?, ?, ?, ?)
+            """, (self.id, self.title, self.description, self.status))
+
+    @staticmethod
+    def load(task_id):
+        """Load task from database."""
+        with get_connection() as conn:
+            cursor = conn.execute("SELECT id, title, description, status FROM tasks WHERE id=?", (task_id,))
+            row = cursor.fetchone()
+            if row:
+                return Task(row[1], row[2], row[3], row[0])
+            else:
+                raise ValueError("Task not found")
 
     def set_status(self, status):
-        if status in self.STATUS_OPTIONS:
-            self.status = status
-        else:
-            raise ValueError(f"Invalid status: {status}")
+        if status not in self.STATUS_OPTIONS:
+            raise ValueError("Invalid status")
+        self.status = status
+        self.save()
 
     def __repr__(self):
-        # Short representation for clarity
         return f"<Task {self.id[:8]}: {self.title} [{self.status}]>"

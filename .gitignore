@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Databases
+*.db
+*.sqlite
+
+# Logs
+*.log
+
+# Virtual environment
+venv/
+env/
+
+# MacOS files
+.DS_Store
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+pyscrum/__pycache__/

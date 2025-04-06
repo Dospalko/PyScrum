@@ -20,7 +20,8 @@ def export_sprint_report_to_csv(sprint_name, filename=None):
             SELECT t.id, t.title, t.description, t.status
             FROM tasks t
             JOIN sprint_tasks st ON t.id = st.task_id
-            WHERE st.sprint_name = ?
+            JOIN sprints s ON st.sprint_id = s.id
+            WHERE s.name = ?
         """, (sprint_name,))
         sprint_tasks = cursor.fetchall()
 

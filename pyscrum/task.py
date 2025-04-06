@@ -49,5 +49,10 @@ class Task:
         self.description = new_description
         self.save()
 
+    def exists(task_id):
+        with get_connection() as conn:
+            cursor = conn.execute("SELECT 1 FROM tasks WHERE id = ?", (task_id,))
+            return cursor.fetchone() is not None
+    
     def __repr__(self):
         return f"<Task {self.id[:8]}: {self.title} [{self.status}]>"

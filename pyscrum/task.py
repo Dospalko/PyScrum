@@ -35,5 +35,14 @@ class Task:
         self.status = status
         self.save()
 
+    def update_status(self, new_status):
+        """Update the status of the task."""
+        self.set_status(new_status)
+
+    def update_description(self, new_description):
+        """Update the description of the task."""
+        self.description = new_description
+        self.save()
+
     def __repr__(self):
         return f"<Task {self.id[:8]}: {self.title} [{self.status}]>"

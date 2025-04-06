@@ -24,9 +24,9 @@ class Sprint:
 
         with get_connection() as conn:
             conn.execute("""
-                INSERT INTO sprint_tasks (sprint_id, task_id)
+                INSERT INTO sprint_tasks (sprint_name, task_id)
                 VALUES (?, ?)
-            """, (self.id, task.id))  # Corrected from sprint_name to sprint_id
+            """, (self.name, task.id)) # Corrected from sprint_name to sprint_id
 
         self.tasks.append(task)  # Add to in-memory list too
 

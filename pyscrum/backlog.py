@@ -1,21 +1,25 @@
+import pytest
+
+from pyscrum.task import Task
+from pyscrum.sprint import Sprint
+
 class Backlog:
-  
     def __init__(self):
         self.tasks = []
 
     def add_task(self, task):
         self.tasks.append(task)
 
-    def remove_task(self, task_id):
-         self.tasks = [task for task in self.tasks if task.id != task_id]
-
-    def move_task_to_sprint(self, task_id, sprint):
-        task = next((t for t in self.tasks if t.id == task_id), None)
-        if task:
-            sprint.add_task(task)
+    def remove_task(self, task):
+        if task in self.tasks:
             self.tasks.remove(task)
         else:
-            raise ValueError("Task not found in backlog")
+            raise ValueError("Task not found")
 
-    def __repr__(self):
-        return f"<Backlog: {len(self.tasks)} tasks pending>"
+    def get_task(self, task):
+        if task in self.tasks:
+            return task
+        raise ValueError("Task not found")
+
+    def clear(self):
+        self.tasks.clear()

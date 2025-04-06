@@ -9,6 +9,8 @@ from pyscrum.sprint import Sprint
 from pyscrum.database import init_db, get_connection
 from pyscrum.reports import export_tasks_to_csv
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 # This fixture will run before every test function
 @pytest.fixture(autouse=True)
 def setup_and_teardown():

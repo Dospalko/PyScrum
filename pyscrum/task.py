@@ -1,6 +1,7 @@
 import uuid
 from .database import get_connection
 
+
 class Task:
     STATUS_OPTIONS = {"todo", "in_progress", "done"}
 
@@ -13,16 +14,22 @@ class Task:
     def save(self):
         """Persist task to database."""
         with get_connection() as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT OR REPLACE INTO tasks (id, title, description, status)
                 VALUES (?, ?, ?, ?)
-            """, (self.id, self.title, self.description, self.status))
+            """,
+                (self.id, self.title, self.description, self.status),
+            )
 
     @staticmethod
     def load(task_id):
         """Load task from database."""
         with get_connection() as conn:
-            cursor = conn.execute("SELECT id, title, description, status FROM tasks WHERE id=?", (task_id,))
+            cursor = conn.execute(
+                "SELECT id, title, description, status FROM tasks WHERE id=?",
+                (task_id,),
+            )
             row = cursor.fetchone()
             if row:
                 return Task(row[1], row[2], row[3], row[0])

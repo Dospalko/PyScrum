@@ -3,18 +3,18 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Databases
+# Database files
 *.db
 *.sqlite
 
 # Logs
 *.log
 
-# Virtual environment
+# Python virtual environments
 venv/
 env/
 
-# MacOS files
+# macOS system files
 .DS_Store
 
 # Distribution / packaging
@@ -22,4 +22,9 @@ build/
 dist/
 *.egg-info/
 
-pyscrum/__pycache__/
+# Ignore all __pycache__ directories recursively
+**/__pycache__/
+
+# Ignore report outputs
+*.csv
+*.html

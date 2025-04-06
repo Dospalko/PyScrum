@@ -69,3 +69,37 @@ def export_sprint_report_to_html(sprint_name, filename=None):
     """
 
     Path(filename).write_text(html_content, encoding="utf-8")
+
+
+def export_tasks_to_html(filename="tasks_report.html"):
+    """Export all tasks in the system to an HTML file."""
+    with get_connection() as conn:
+        cursor = conn.execute("SELECT id, title, description, status FROM tasks")
+        tasks = cursor.fetchall()
+
+    html_content = f"""
+    <html>
+    <head>
+        <title>All Tasks Report</title>
+        <style>
+            table {{ border-collapse: collapse; width: 100%; }}
+            th, td {{ border: 1px solid #ddd; padding: 8px; }}
+            th {{ background-color: #f2f2f2; }}
+        </style>
+    </head>
+    <body>
+        <h2>All Tasks Report</h2>
+        <table>
+            <tr>
+                <th>Task ID</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Status</th>
+            </tr>
+            {''.join(f"<tr><td>{t[0]}</td><td>{t[1]}</td><td>{t[2]}</td><td>{t[3]}</td></tr>" for t in tasks)}
+        </table>
+    </body>
+    </html>
+    """
+
+    Path(filename).write_text(html_content, encoding="utf-8")

@@ -13,7 +13,6 @@ def get_connection():
         conn.commit()
         conn.close()
 
-
 def init_db():
     """Initialize the database schema."""
     with get_connection() as conn:
@@ -27,17 +26,14 @@ def init_db():
             );
 
             CREATE TABLE IF NOT EXISTS sprints (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL
+                name TEXT PRIMARY KEY
             );
 
             CREATE TABLE IF NOT EXISTS sprint_tasks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sprint_id TEXT NOT NULL,
-                task_id TEXT NOT NULL,
-                FOREIGN KEY (sprint_id) REFERENCES sprints(id),
-                FOREIGN KEY (task_id) REFERENCES tasks(id),
-                UNIQUE(sprint_id, task_id)
+                sprint_name TEXT,
+                task_id TEXT,
+                PRIMARY KEY (sprint_name, task_id),
+                FOREIGN KEY (sprint_name) REFERENCES sprints(name),
+                FOREIGN KEY (task_id) REFERENCES tasks(id)
             );
-
         """)

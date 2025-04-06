@@ -1,8 +1,0 @@
-Task ID,Title,Description,Status
-64e7ddea-6edb-4ebd-b3e1-443f9f17463d,API endpoints,Develop RESTful API,todo
-35012f00-25aa-4274-829d-e488bf10676a,User authentication,Implement login/logout features,in_progress
-c6d15d54-839a-4745-b0cb-45309a0a0cea,Database schema,Create initial database schema,todo
-02e59be5-af11-4d2d-8075-d3785c01afed,Setup server,Deploy application to staging environment,todo
-1cda006a-0711-43d3-b421-e032fddc3b04,Prepare presentation,Create slides for project presentation,in_progress
-74452549-42ba-4fb2-a86f-6987f3823840,Setup server,Deploy application to staging environment,todo
-aa7a63eb-5444-4fbf-8495-ec57a99816b7,Prepare presentation,Create slides for project presentation,in_progress

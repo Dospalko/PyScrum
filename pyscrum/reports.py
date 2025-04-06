@@ -1,6 +1,11 @@
 import csv
+from .task import Task
 from .database import get_connection
 
+<<<<<<< HEAD
+def export_tasks_to_csv(file_path):
+    tasks = Task.get_all_tasks()  # recommended way
+=======
 from pathlib import Path
 
 def export_tasks_to_csv(filename="tasks_report.csv"):
@@ -8,11 +13,14 @@ def export_tasks_to_csv(filename="tasks_report.csv"):
     with get_connection() as conn:
         cursor = conn.execute("SELECT id, title, description, status FROM tasks")
         tasks = cursor.fetchall()
+>>>>>>> 8f8c0f5b99debfd2ea9e35253ea8e10d72cbb1fc
 
-    with open(filename, mode="w", newline='', encoding="utf-8") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Task ID", "Title", "Description", "Status"])
-        writer.writerows(tasks)
+    with open(file_path, "w", newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Title', 'Description', 'Status'])
+
+        for task in tasks:
+            writer.writerow([task.title, task.description, task.status])
 
 def export_sprint_report_to_csv(sprint_name, filename=None):
     """Export tasks of a specific sprint to a CSV file."""
@@ -22,7 +30,8 @@ def export_sprint_report_to_csv(sprint_name, filename=None):
             SELECT t.id, t.title, t.description, t.status
             FROM tasks t
             JOIN sprint_tasks st ON t.id = st.task_id
-            WHERE st.sprint_name = ?
+            JOIN sprints s ON st.sprint_id = s.id
+            WHERE s.name = ?
         """, (sprint_name,))
         sprint_tasks = cursor.fetchall()
 

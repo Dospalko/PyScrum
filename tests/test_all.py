@@ -63,30 +63,45 @@ def test_list_tasks_in_sprint():
 def test_database_insertion_and_retrieval():
     with get_connection() as conn:
         # Insert
-        conn.execute("INSERT INTO tasks (title, description, status) VALUES (?, ?, ?)",
-             ('DB Task', 'DB Desc', 'todo'))
+        conn.execute("INSERT INTO tasks (id, title, description, status) VALUES (?, ?, ?, ?)",
+             ('1', 'DB Task', 'DB Desc', 'todo'))
         conn.commit()
 
         # Retrieve
-        cursor = conn.execute("SELECT * FROM tasks WHERE id = 1")
-        task = cursor.fetchone()
-        assert task[1] == 'DB Task'
+        cursor = conn.execute("SELECT id, title, description, status FROM tasks WHERE id=?", ('1',))
+        row = cursor.fetchone()
+
+        assert row is not None
+        assert row[1] == 'DB Task'
+        assert row[2] == 'DB Desc'
+        assert row[3] == 'todo'
+
+
 
 
 
 # ------------------ Test for reports.py ------------------ #
 def test_export_tasks_to_csv(tmp_path):
-    # Add tasks to DB so that export_tasks_to_csv can fetch
-    Task("CSV Task 1", "Desc 1", "todo")
-    Task("CSV Task 2", "Desc 2", "done")
+    from pyscrum.task import Task
+    from pyscrum.database import get_connection
+    from pyscrum.reports import export_tasks_to_csv  # ye import bhi jaruri hai bro
+
+    # Clear existing tasks
+    with get_connection() as conn:
+        conn.execute("DELETE FROM tasks")
+
+    # Create and Save tasks
+    task1 = Task("CSV Task 1", "Desc 1", "todo")
+    task1.save()
+
+    task2 = Task("CSV Task 2", "Desc 2", "done")
+    task2.save()
 
     file_path = tmp_path / "tasks.csv"
     export_tasks_to_csv(str(file_path))
 
-    # Check if file exists and has content
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
-        assert "CSV Task 1" in content
-        assert "CSV Task 2" in content
-
-
+    
+    assert "CSV Task 1" in content
+    assert "CSV Task 2" in content

@@ -1,15 +1,16 @@
 import csv
+from .task import Task
 from .database import get_connection
 
 def export_tasks_to_csv(file_path):
-    with get_connection() as conn:
-        cursor = conn.execute("SELECT title, description, status FROM tasks")
-        rows = cursor.fetchall()
+    tasks = Task.get_all_tasks()  # recommended way
 
     with open(file_path, "w", newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['Title', 'Description', 'Status'])
-        writer.writerows(rows)
+
+        for task in tasks:
+            writer.writerow([task.title, task.description, task.status])
 
 def export_sprint_report_to_csv(sprint_name, filename=None):
     """Export tasks of a specific sprint to a CSV file."""

@@ -11,7 +11,6 @@ class Task:
         self.status = status
 
     def save(self):
-        """Persist task to database."""
         with get_connection() as conn:
             conn.execute("""
                 INSERT OR REPLACE INTO tasks (id, title, description, status)
@@ -19,15 +18,23 @@ class Task:
             """, (self.id, self.title, self.description, self.status))
 
     @staticmethod
-    def load(task_id):
-        """Load task from database."""
+
+    def get_all_tasks():
         with get_connection() as conn:
-            cursor = conn.execute("SELECT id, title, description, status FROM tasks WHERE id=?", (task_id,))
+            cursor = conn.execute("SELECT id, title, description, status FROM tasks")
+            rows = cursor.fetchall()
+
+        return [Task(title=row[1], description=row[2], status=row[3], task_id=row[0]) for row in rows]
+
+    def load(task_id):
+        with get_connection() as conn:
+            cursor = conn.execute("""
+                SELECT id, title, description, status FROM tasks WHERE id=?
+            """, (task_id,))
             row = cursor.fetchone()
-            if row:
-                return Task(row[1], row[2], row[3], row[0])
-            else:
+            if not row:
                 raise ValueError("Task not found")
+            return Task(row[1], row[2], row[3], row[0])
 
     def set_status(self, status):
         if status not in self.STATUS_OPTIONS:
@@ -36,11 +43,9 @@ class Task:
         self.save()
 
     def update_status(self, new_status):
-        """Update the status of the task."""
         self.set_status(new_status)
 
     def update_description(self, new_description):
-        """Update the description of the task."""
         self.description = new_description
         self.save()
 

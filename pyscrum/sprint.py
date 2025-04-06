@@ -10,60 +10,74 @@ class Sprint:
         self.tasks = []
 
     def save(self):
-        """Persist sprint to database."""
         with get_connection() as conn:
             conn.execute("""
-                INSERT OR REPLACE INTO sprints (id, name)
-                VALUES (?, ?)
-            """, (self.id, self.name))
+                INSERT OR REPLACE INTO sprints (name)
+                VALUES (?)
+            """, (self.name,))
 
     def add_task(self, task):
-        """Assign a task to this sprint."""
         if not isinstance(task, Task):
             raise TypeError("Expected a Task instance")
 
         with get_connection() as conn:
             conn.execute("""
-                INSERT INTO sprint_tasks (sprint_name, task_id)
+                INSERT OR IGNORE INTO sprint_tasks (sprint_name, task_id)
                 VALUES (?, ?)
-            """, (self.name, task.id)) # Corrected from sprint_name to sprint_id
+            """, (self.name, task.id))
 
-        self.tasks.append(task)  # Add to in-memory list too
+        self.tasks.append(task)
 
     def list_tasks(self):
-        """List all tasks assigned to this sprint."""
-        if not self.tasks:  # Lazy load from DB if empty
+        if not self.tasks:
             with get_connection() as conn:
                 cursor = conn.execute("""
-                    SELECT task_id FROM sprint_tasks WHERE sprint_id=?
-                """, (self.id,))
+                    SELECT task_id FROM sprint_tasks WHERE sprint_name=?
+                """, (self.name,))
                 for row in cursor.fetchall():
                     self.tasks.append(Task.load(row[0]))
         return self.tasks
 
     @staticmethod
-    def load(sprint_id):
-        """Load sprint and its tasks from database."""
+    def load(sprint_name):
         with get_connection() as conn:
-            cursor = conn.execute("SELECT id, name FROM sprints WHERE id=?", (sprint_id,))
+            cursor = conn.execute("SELECT name FROM sprints WHERE name=?", (sprint_name,))
             row = cursor.fetchone()
             if not row:
                 raise ValueError("Sprint not found")
 
-            sprint = Sprint(row[1], row[0])
+            sprint = Sprint(row[0])
 
             cursor = conn.execute("""
-                SELECT task_id FROM sprint_tasks WHERE sprint_id=?
-            """, (sprint_id,))
+                SELECT task_id FROM sprint_tasks WHERE sprint_name=?
+            """, (sprint_name,))
             for task_row in cursor.fetchall():
                 sprint.tasks.append(Task.load(task_row[0]))
 
             return sprint
 
     def update_name(self, new_name):
-        """Update sprint name."""
+        with get_connection() as conn:
+            # Update in sprints table
+            conn.execute("""
+                UPDATE sprints SET name=? WHERE name=?
+            """, (new_name, self.name))
+
+            # Update in sprint_tasks table
+            conn.execute("""
+                UPDATE sprint_tasks SET sprint_name=? WHERE sprint_name=?
+            """, (new_name, self.name))
+
         self.name = new_name
-        self.save()
 
     def __repr__(self):
-        return f"<Sprint {self.id[:8]}: {self.name} ({len(self.tasks)} tasks)>"
+        return f"<Sprint {self.name}: ({len(self.tasks)} tasks)>"
+
+    def remove_task(self, task_id):
+        with get_connection() as conn:
+            conn.execute("""
+                DELETE FROM sprint_tasks WHERE task_id=? AND sprint_name=?
+            """, (task_id, self.name))
+
+        # Remove from local list as well
+        self.tasks = [task for task in self.tasks if task.id != task_id]

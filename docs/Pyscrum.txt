@@ -1,0 +1,217 @@
+# PyScrum
+
+PyScrum is a minimalist Python library for managing tasks, sprints, and backlogs using basic Scrum principles – all directly from your Python code. No external tools or interfaces are required.
+
+---
+
+## Key Features
+
+-   **Task Management:** Create and manage tasks with status tracking (`todo`, `in_progress`, `done`).
+-   **Sprint Organization:** Organize tasks into sprints.
+-   **Backlog:** Maintain a clean backlog of unassigned tasks.
+-   **Persistence:** Store all data in a local SQLite database.
+-   **Reporting:** Export reports to CSV and HTML formats.
+-   **Scriptable:** The library is lightweight, automation-friendly, and scriptable.
+
+---
+
+## Requirements
+
+-   Python 3.7+
+-   No external dependencies
+
+---
+
+## Installation
+
+Clone the repository and install the library in editable mode:
+
+```bash
+git clone <YOUR_REPOSITORY_URL> # Replace with your repository URL
+cd pyscrum
+pip install -e .
+Use code with caution.
+Markdown
+Quick Start
+Initialize the Database:
+Initialize the database once when your application starts. This creates the necessary tables if they don't already exist.
+
+from pyscrum.database import init_db
+
+init_db()
+print("Database initialized.")
+Use code with caution.
+Python
+Create and Save Tasks:
+Create tasks and add them to the backlog.
+
+from pyscrum import Task, Backlog
+
+# Initialize the backlog
+backlog = Backlog()
+
+# Create new tasks
+task1 = Task("Implement login form", "Support Google and email login")
+task2 = Task("Design database schema", "Define tables for users and tasks")
+
+# Add tasks to the backlog and save them
+backlog.add_task(task1)
+task1.save()
+backlog.add_task(task2)
+task2.save()
+
+print(f"Task '{task1.title}' added to backlog with ID: {task1.id}")
+print(f"Task '{task2.title}' added to backlog with ID: {task2.id}")
+Use code with caution.
+Python
+Create a Sprint and Move Tasks:
+Create a sprint and move tasks from the backlog into it.
+
+from pyscrum import Sprint
+
+# Create a new sprint
+sprint1 = Sprint("Sprint 1 - Core Functionality")
+sprint1.save() # Save sprint metadata
+
+# Move a task from the backlog to the sprint
+if task1.id: # Ensure the task has an ID (was saved)
+    backlog.move_task_to_sprint(task1.id, sprint1)
+    print(f"Task '{task1.title}' moved to sprint '{sprint1.name}'.")
+else:
+    print(f"Error: Task '{task1.title}' was not saved and has no ID.")
+
+# Optionally, add another task directly to the sprint (if not already in backlog)
+# task_new = Task("Write unit tests", "Cover core functions with tests")
+# task_new.save()
+# sprint1.add_task(task_new) # add_task adds the task but doesn't manipulate the backlog
+# sprint1.save() # Save the relationship between the sprint and tasks
+Use code with caution.
+Python
+Update Task Status:
+Change the status of a task as work progresses.
+
+# Load the task if necessary
+# loaded_task = Task.load(task1.id)
+
+# Update the status
+if task1.id:
+    task1.set_status("in_progress")
+    print(f"Task status for '{task1.title}' updated to '{task1.status}'.")
+Use code with caution.
+Python
+API Reference
+Task
+Represents a single task in the system.
+
+from pyscrum import Task
+from typing import Optional
+
+# Constructor
+task = Task(
+    title: str,
+    description: str = "",
+    status: str = "todo",
+    task_id: Optional[str] = None # UUID as a string
+)
+Use code with caution.
+Python
+title: The name of the task (required).
+
+description: A detailed description of the task (optional).
+
+status: The current status of the task (todo, in_progress, done). Defaults to todo.
+
+task_id: The unique identifier for the task (UUID). If provided, attempts to load an existing task. If not provided, a new one is generated upon creation.
+
+Methods:
+
+set_status(status: str): Changes the task's status. Allowed values are todo, in_progress, done. Raises ValueError for invalid status.
+
+save(): Persists the current state of the task (or creates a new task) to the database. Updates task_id if it's a new task.
+
+@staticmethod Task.load(task_id: str): Loads an existing task from the database by its task_id. Raises ValueError if the task does not exist.
+
+Sprint
+Represents a sprint containing a collection of tasks.
+
+from pyscrum import Sprint
+
+# Constructor
+sprint = Sprint(name: str)
+Use code with caution.
+Python
+name: The unique name of the sprint. If a sprint with this name exists, it is loaded; otherwise, a new one is prepared for saving.
+
+Methods:
+
+add_task(task: Task): Adds a Task object to the sprint (in memory). Call save() for persistence.
+
+remove_task(task_id: str): Removes a task from the sprint by task_id (in memory). Call save() for persistence.
+
+get_tasks() -> List[Task]: Returns a list of all tasks in this sprint, loaded from the database.
+
+get_tasks_by_status(status: str) -> List[Task]: Returns a list of tasks in this sprint filtered by status.
+
+save(): Saves the sprint metadata (name) and the relationships between the sprint and its tasks (which tasks it contains) to the database.
+
+Backlog
+Represents the backlog, containing tasks not yet assigned to any sprint.
+
+from pyscrum import Backlog
+
+# Constructor
+backlog = Backlog()
+Use code with caution.
+Python
+Methods:
+
+add_task(task: Task): Adds a task to the backlog (in the database). The task must be saved first (task.save()).
+
+remove_task(task_id: str): Removes a task from the backlog (in the database).
+
+get_tasks() -> List[Task]: Returns a list of all tasks currently in the backlog.
+
+move_task_to_sprint(task_id: str, sprint: Sprint): Moves a task from the backlog into the specified sprint. This method updates the database (removes from backlog, adds relationship to sprint).
+
+Database
+Module for managing the database connection and schema.
+
+from pyscrum.database import init_db
+
+# Initialization function
+init_db()
+Use code with caution.
+Python
+init_db(): Creates the database file (pyscrum.db in the current directory, unless configured otherwise) and the necessary tables (tasks, sprints, sprint_tasks, backlog_tasks) if they do not already exist.
+
+Reporting
+The library provides functions to export data to CSV and HTML formats.
+
+from pyscrum.reports import (
+    export_tasks_to_csv,
+    export_sprint_report_to_csv,
+    export_tasks_to_html,
+    export_sprint_report_to_html
+)
+Use code with caution.
+Python
+CSV Reports
+export_tasks_to_csv(filename: str = "tasks_report.csv"): Exports all tasks (regardless of sprint or backlog) to a CSV file.
+
+export_sprint_report_to_csv(sprint_name: str, filename: Optional[str] = None): Exports all tasks belonging to the specified sprint to a CSV file. If filename is not provided, sprint_{sprint_name}_report.csv is used.
+
+HTML Reports
+export_tasks_to_html(filename: str = "tasks_report.html"): Exports all tasks to an HTML file containing a table.
+
+export_sprint_report_to_html(sprint_name: str, filename: Optional[str] = None): Exports all tasks in the specified sprint to an HTML file containing a table. If filename is not provided, sprint_{sprint_name}_report.html is used.
+
+Example Usage of Reports:
+
+# Export all tasks to CSV
+export_tasks_to_csv("all_tasks.csv")
+
+# Export the "Sprint 1 - Core Functionality" sprint to HTML
+export_sprint_report_to_html("Sprint 1 - Core Functionality", "sprint1_report.html")
+
+print("Reports generated.")
+Use code with caution.

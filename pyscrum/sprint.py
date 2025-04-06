@@ -24,10 +24,22 @@ class Sprint:
 
         with get_connection() as conn:
             conn.execute("""
-                INSERT INTO sprint_tasks (sprint_name, task_id)
+                INSERT INTO sprint_tasks (sprint_id, task_id)
                 VALUES (?, ?)
-            """, (self.name, task.id))
+            """, (self.id, task.id))  # Corrected from sprint_name to sprint_id
 
+        self.tasks.append(task)  # Add to in-memory list too
+
+    def list_tasks(self):
+        """List all tasks assigned to this sprint."""
+        if not self.tasks:  # Lazy load from DB if empty
+            with get_connection() as conn:
+                cursor = conn.execute("""
+                    SELECT task_id FROM sprint_tasks WHERE sprint_id=?
+                """, (self.id,))
+                for row in cursor.fetchall():
+                    self.tasks.append(Task.load(row[0]))
+        return self.tasks
 
     @staticmethod
     def load(sprint_id):
@@ -40,14 +52,11 @@ class Sprint:
 
             sprint = Sprint(row[1], row[0])
 
-            # Load tasks of the sprint
-            task_cursor = conn.execute("""
+            cursor = conn.execute("""
                 SELECT task_id FROM sprint_tasks WHERE sprint_id=?
             """, (sprint_id,))
-            
-            for task_row in task_cursor.fetchall():
-                task = Task.load(task_row[0])
-                sprint.tasks.append(task)
+            for task_row in cursor.fetchall():
+                sprint.tasks.append(Task.load(task_row[0]))
 
             return sprint
 

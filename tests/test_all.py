@@ -63,8 +63,8 @@ def test_list_tasks_in_sprint():
 def test_database_insertion_and_retrieval():
     with get_connection() as conn:
         # Insert
-        conn.execute("INSERT INTO tasks (id, title, description, status) VALUES (?, ?, ?, ?)",
-                     (1, 'DB Task', 'DB Desc', 'todo'))
+        conn.execute("INSERT INTO tasks (title, description, status) VALUES (?, ?, ?)",
+             ('DB Task', 'DB Desc', 'todo'))
         conn.commit()
 
         # Retrieve

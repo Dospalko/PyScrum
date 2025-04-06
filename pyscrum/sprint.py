@@ -21,14 +21,13 @@ class Sprint:
         """Assign a task to this sprint."""
         if not isinstance(task, Task):
             raise TypeError("Expected a Task instance")
-        
+
         with get_connection() as conn:
             conn.execute("""
-                INSERT INTO sprint_tasks (sprint_id, task_id)
+                INSERT INTO sprint_tasks (sprint_name, task_id)
                 VALUES (?, ?)
-            """, (self.id, task.id))
+            """, (self.name, task.id))
 
-        self.tasks.append(task)
 
     @staticmethod
     def load(sprint_id):

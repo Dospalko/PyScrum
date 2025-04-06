@@ -1,11 +1,12 @@
 import csv
 from .database import get_connection
 
-def export_tasks_to_csv(filename="tasks_report.csv"):
-    """Export all tasks to a CSV file."""
-    with get_connection() as conn:
-        cursor = conn.execute("SELECT id, title, description, status FROM tasks")
-        tasks = cursor.fetchall()
+def export_tasks_to_csv(tasks=None, filename="tasks_report.csv"):
+    """Export given tasks or all tasks to a CSV file."""
+    if tasks is None:
+        with get_connection() as conn:
+            cursor = conn.execute("SELECT id, title, description, status FROM tasks")
+            tasks = cursor.fetchall()
 
     with open(filename, mode="w", newline='', encoding="utf-8") as file:
         writer = csv.writer(file)

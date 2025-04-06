@@ -36,4 +36,10 @@ def init_db():
                 FOREIGN KEY (sprint_name) REFERENCES sprints(name),
                 FOREIGN KEY (task_id) REFERENCES tasks(id)
             );
+                             
+            CREATE TABLE IF NOT EXISTS sprint_tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sprint_id TEXT,
+                task_id TEXT
+            );
         """)

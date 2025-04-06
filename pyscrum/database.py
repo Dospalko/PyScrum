@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 DB_NAME = "pyscrum.db"
 
+
 @contextmanager
 def get_connection():
     """Context manager for database connections."""
@@ -13,11 +14,13 @@ def get_connection():
         conn.commit()
         conn.close()
 
+
 def init_db():
     """Initialize the database schema."""
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.executescript("""
+        cursor.executescript(
+            """
             CREATE TABLE IF NOT EXISTS tasks (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
@@ -29,6 +32,7 @@ def init_db():
                 name TEXT PRIMARY KEY,
                 status TEXT DEFAULT 'Planned'
             );
+
 
             CREATE TABLE IF NOT EXISTS sprint_tasks (
                 sprint_name TEXT,
@@ -42,4 +46,5 @@ def init_db():
                 task_id TEXT PRIMARY KEY,
                 FOREIGN KEY (task_id) REFERENCES tasks(id)
             );
-        """)
+        """
+        )

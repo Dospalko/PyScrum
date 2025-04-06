@@ -26,7 +26,8 @@ def init_db():
             );
 
             CREATE TABLE IF NOT EXISTS sprints (
-                name TEXT PRIMARY KEY
+                name TEXT PRIMARY KEY,
+                status TEXT DEFAULT 'Planned'
             );
 
             CREATE TABLE IF NOT EXISTS sprint_tasks (
@@ -34,6 +35,11 @@ def init_db():
                 task_id TEXT,
                 PRIMARY KEY (sprint_name, task_id),
                 FOREIGN KEY (sprint_name) REFERENCES sprints(name),
+                FOREIGN KEY (task_id) REFERENCES tasks(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS backlog_tasks (
+                task_id TEXT PRIMARY KEY,
                 FOREIGN KEY (task_id) REFERENCES tasks(id)
             );
         """)

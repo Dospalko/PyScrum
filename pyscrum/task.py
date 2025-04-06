@@ -35,14 +35,12 @@ class Task:
         self.status = status
         self.save()
 
-    # Add alias method for set_status to match tests
     def update_status(self, status):
-        """Alias for set_status to maintain backward compatibility."""
+        """Alias for set_status."""
         return self.set_status(status)
 
-    # Add update_description method
     def update_description(self, description):
-        """Update the task's description."""
+        """Update task description."""
         self.description = description
         self.save()
         return self

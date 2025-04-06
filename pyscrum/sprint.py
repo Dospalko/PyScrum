@@ -1,46 +1,61 @@
+import uuid
 from .database import get_connection
 from .task import Task
 
+
 class Sprint:
-    def __init__(self, name):
+    def __init__(self, name, sprint_id=None):
+        self.id = sprint_id or str(uuid.uuid4())
         self.name = name
         self.tasks = []
-        self._load_tasks()
-
-    def _load_tasks(self):
-        """Load associated tasks from database."""
-        with get_connection() as conn:
-            cursor = conn.execute("""
-                SELECT task_id FROM sprint_tasks WHERE sprint_name=?
-            """, (self.name,))
-            task_ids = cursor.fetchall()
-            self.tasks = [Task.load(task_id[0]) for task_id in task_ids]
 
     def save(self):
         """Persist sprint to database."""
         with get_connection() as conn:
-            conn.execute("INSERT OR IGNORE INTO sprints (name) VALUES (?)", (self.name,))
-            for task in self.tasks:
-                conn.execute("""
-                    INSERT OR IGNORE INTO sprint_tasks (sprint_name, task_id)
-                    VALUES (?, ?)
-                """, (self.name, task.id))
+            conn.execute("""
+                INSERT OR REPLACE INTO sprints (id, name)
+                VALUES (?, ?)
+            """, (self.id, self.name))
 
     def add_task(self, task):
-        if task not in self.tasks:
-            self.tasks.append(task)
-            task.save()
-            self.save()
-
-    def remove_task(self, task_id):
-        self.tasks = [task for task in self.tasks if task.id != task_id]
+        """Assign a task to this sprint."""
+        if not isinstance(task, Task):
+            raise TypeError("Expected a Task instance")
+        
         with get_connection() as conn:
             conn.execute("""
-                DELETE FROM sprint_tasks WHERE sprint_name=? AND task_id=?
-            """, (self.name, task_id))
+                INSERT INTO sprint_tasks (sprint_id, task_id)
+                VALUES (?, ?)
+            """, (self.id, task.id))
 
-    def get_tasks_by_status(self, status):
-        return [task for task in self.tasks if task.status == status]
+        self.tasks.append(task)
+
+    @staticmethod
+    def load(sprint_id):
+        """Load sprint and its tasks from database."""
+        with get_connection() as conn:
+            cursor = conn.execute("SELECT id, name FROM sprints WHERE id=?", (sprint_id,))
+            row = cursor.fetchone()
+            if not row:
+                raise ValueError("Sprint not found")
+
+            sprint = Sprint(row[1], row[0])
+
+            # Load tasks of the sprint
+            task_cursor = conn.execute("""
+                SELECT task_id FROM sprint_tasks WHERE sprint_id=?
+            """, (sprint_id,))
+            
+            for task_row in task_cursor.fetchall():
+                task = Task.load(task_row[0])
+                sprint.tasks.append(task)
+
+            return sprint
+
+    def update_name(self, new_name):
+        """Update sprint name."""
+        self.name = new_name
+        self.save()
 
     def __repr__(self):
-        return f"<Sprint {self.name}: {len(self.tasks)} tasks>"
+        return f"<Sprint {self.id[:8]}: {self.name} ({len(self.tasks)} tasks)>"

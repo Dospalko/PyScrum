@@ -35,5 +35,17 @@ class Task:
         self.status = status
         self.save()
 
+    # Add alias method for set_status to match tests
+    def update_status(self, status):
+        """Alias for set_status to maintain backward compatibility."""
+        return self.set_status(status)
+
+    # Add update_description method
+    def update_description(self, description):
+        """Update the task's description."""
+        self.description = description
+        self.save()
+        return self
+
     def __repr__(self):
         return f"<Task {self.id[:8]}: {self.title} [{self.status}]>"

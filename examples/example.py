@@ -62,6 +62,12 @@ def full_example():
     for task in sprint.list_tasks():
         print(" -", task)
 
+    sprint.update_name("Frontend Sprint")
+
+    print(sprint)
+    for task in sprint.tasks:
+            print(task)
+
     print("\n🧹 Clearing backlog...")
     backlog.clear()
     print("📦 Backlog cleared:", backlog)

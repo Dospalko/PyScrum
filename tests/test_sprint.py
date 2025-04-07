@@ -6,6 +6,15 @@ from pyscrum.database import init_db, get_connection
 # Ensure database schema exists
 init_db()
 
+@pytest.fixture(autouse=True)
+def cleanup_database():
+    """Clean up the database before each test."""
+    with get_connection() as conn:
+        conn.execute("DELETE FROM sprint_tasks")
+        conn.execute("DELETE FROM sprints")
+        conn.execute("DELETE FROM tasks")
+    yield
+
 def test_sprint_creation():
     sprint = Sprint("Test Sprint")
     assert sprint.name == "Test Sprint"
@@ -101,3 +110,27 @@ def test_duplicate_task_not_added_twice():
     sprint.add_task(task)
     sprint.add_task(task)  # should not be added again
     assert len(sprint.list_tasks()) == 1
+
+def test_sprint_deletion():
+    # Create a sprint with a task
+    sprint = Sprint("DeleteMeSprint")
+    task = Task("Task to orphan", "Will be orphaned when sprint is deleted")
+    task.save()
+    sprint.add_task(task)
+    sprint.save()
+
+    # Delete the sprint
+    Sprint.delete("DeleteMeSprint")
+
+    # Verify sprint is deleted by trying to load its tasks
+    new_sprint = Sprint("DeleteMeSprint")
+    assert len(new_sprint.list_tasks()) == 0
+
+    # Verify the sprint is removed from sprints table
+    with get_connection() as conn:
+        result = conn.execute("SELECT name FROM sprints WHERE name=?", ("DeleteMeSprint",)).fetchone()
+        assert result is None
+
+        # Verify sprint_tasks entries are removed
+        result = conn.execute("SELECT * FROM sprint_tasks WHERE sprint_name=?", ("DeleteMeSprint",)).fetchone()
+        assert result is None

@@ -118,3 +118,13 @@ class Sprint:
 
     def __repr__(self):
         return f"<Sprint {self.name}: {len(self.tasks)} tasks>"
+
+    @classmethod
+    def delete(cls, name):
+        """Delete a sprint from the database, including its tasks from the sprint_tasks table."""
+        try:
+            with get_connection() as conn:
+                conn.execute("DELETE FROM sprint_tasks WHERE sprint_name=?", (name,))
+                conn.execute("DELETE FROM sprints WHERE name=?", (name,))
+        except sqlite3.OperationalError:
+            pass

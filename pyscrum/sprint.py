@@ -128,3 +128,23 @@ class Sprint:
                 conn.execute("DELETE FROM sprints WHERE name=?", (name,))
         except sqlite3.OperationalError:
             pass
+
+    @classmethod
+    def from_name(cls, name):
+        """Load a Sprint instance from the database by its name, including its tasks."""
+        try:
+            with get_connection() as conn:
+                cursor = conn.execute("SELECT name, status FROM sprints WHERE name=?", (name,))
+                row = cursor.fetchone()
+                if not row:
+                    raise ValueError(f"Sprint '{name}' not found.")
+
+                # Create a new Sprint instance with the loaded name
+                sprint = cls(row[0])
+                sprint.status = row[1]
+                sprint._load_tasks()  # Load tasks from DB
+
+                return sprint
+        except sqlite3.OperationalError as e:
+            raise RuntimeError(f"Database error while loading sprint '{name}': {e}")
+

@@ -148,3 +148,20 @@ class Sprint:
         except sqlite3.OperationalError as e:
             raise RuntimeError(f"Database error while loading sprint '{name}': {e}")
 
+
+    @classmethod
+    def list_all(cls):
+        """Return a list of all Sprint instances stored in the database."""
+        sprints = []
+        try:
+            with get_connection() as conn:
+                cursor = conn.execute("SELECT name, status FROM sprints")
+                for row in cursor.fetchall():
+                    sprint = cls(row[0])
+                    sprint.status = row[1]
+                    sprint._load_tasks()
+                    sprints.append(sprint)
+        except sqlite3.OperationalError:
+            
+            pass
+        return sprints

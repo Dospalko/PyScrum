@@ -51,6 +51,23 @@ class Task:
         self.description = description
         self.save()
         return self
+    @staticmethod
+    def search(query):
+        """Search for tasks by title or description."""
+        results = []
+        try:
+            with get_connection() as conn:
+                cursor = conn.execute("""
+                    SELECT id, title, description, status
+                    FROM tasks
+                    WHERE title LIKE ? OR description LIKE ?
+                """, (f"%{query}%", f"%{query}%"))
+                for row in cursor.fetchall():
+                    task = Task(row[1], row[2], row[3], row[0])
+                    results.append(task)
+        except sqlite3.OperationalError:
+            pass
+        return results
 
     def __repr__(self):
         return f"<Task {self.id[:8]}: {self.title} [{self.status}]>"

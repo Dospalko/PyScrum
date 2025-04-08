@@ -68,6 +68,23 @@ class Task:
         except sqlite3.OperationalError:
             pass
         return results
+    
+    @staticmethod
+    def list_all(status=None):
+        """Return all tasks from DB, optionally filtered by status."""
+        tasks = []
+        try:
+            with get_connection() as conn:
+                if status:
+                    cursor = conn.execute("SELECT id, title, description, status FROM tasks WHERE status=?", (status,))
+                else:
+                    cursor = conn.execute("SELECT id, title, description, status FROM tasks")
+                for row in cursor.fetchall():
+                    tasks.append(Task(row[1], row[2], row[3], row[0]))
+        except sqlite3.OperationalError:
+            pass
+        return tasks
+
 
     def __repr__(self):
         return f"<Task {self.id[:8]}: {self.title} [{self.status}]>"

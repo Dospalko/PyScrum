@@ -148,6 +148,30 @@ class Sprint:
         except sqlite3.OperationalError as e:
             raise RuntimeError(f"Database error while loading sprint '{name}': {e}")
 
+    def get_tasks_by_status(self, status, export_to=None):
+        """Return tasks in sprint filtered by status. Optionally export to file."""
+        filtered = [task for task in self.tasks if task.status == status]
+
+        if export_to:
+            from pathlib import Path
+            from html import escape
+            filename = export_to.lower()
+            if filename.endswith(".csv"):
+                import csv
+                with open(filename, mode="w", newline="", encoding="utf-8") as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Task ID", "Title", "Description", "Status"])
+                    for t in filtered:
+                        writer.writerow([t.id, t.title, t.description, t.status])
+            elif filename.endswith(".html"):
+                html = f"""<html><head><title>{status} Tasks in Sprint {self.name}</title></head><body>
+                <h2>Tasks with status '{status}'</h2><table border="1">
+                <tr><th>ID</th><th>Title</th><th>Description</th><th>Status</th></tr>
+                {''.join(f"<tr><td>{escape(t.id)}</td><td>{escape(t.title)}</td><td>{escape(t.description)}</td><td>{t.status}</td></tr>" for t in filtered)}
+                </table></body></html>"""
+                Path(filename).write_text(html, encoding="utf-8")
+
+        return filtered
 
     @classmethod
     def list_all(cls):
@@ -162,6 +186,6 @@ class Sprint:
                     sprint._load_tasks()
                     sprints.append(sprint)
         except sqlite3.OperationalError:
-            
+
             pass
         return sprints

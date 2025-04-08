@@ -12,7 +12,10 @@ from pyscrum.reports import (
 def full_example():
     print("⏳ Initializing database...")
     init_db()
-
+    for sprint in Sprint.list_all():
+        print(sprint)
+    for task in sprint.tasks:
+        print(" -", task)
     print("📋 Creating backlog and tasks...")
     backlog = Backlog()
     task1 = Task("Implement login", "Google + Email")
@@ -83,6 +86,8 @@ def full_example():
     print(" - sprint_report.csv")
     print(" - all_tasks.html")
     print(" - sprint_report.html")
+
+
 
 if __name__ == "__main__":
     full_example()

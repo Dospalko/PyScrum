@@ -172,6 +172,10 @@ class Sprint:
                 Path(filename).write_text(html, encoding="utf-8")
 
         return filtered
+    def archive(self):
+        """Mark sprint as archived."""
+        self.status = "Archived"
+        self.save()
 
     @classmethod
     def list_all(cls):

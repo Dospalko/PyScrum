@@ -36,7 +36,6 @@ def export_sprint_report_to_csv(sprint_name, filename=None):
             writer.writerows(sprint_tasks)
 
 
-
 def export_tasks_to_html(filename="tasks_report.html"):
     with get_connection() as conn:
         cursor = conn.execute("SELECT id, title, description, status FROM tasks")
@@ -62,7 +61,6 @@ def export_sprint_report_to_html(sprint_name, filename=None):
 
     html_content = _render_html(f"Sprint Report: {sprint_name}", tasks)
     Path(filename).write_text(html_content, encoding="utf-8")
-
 
 
 def _render_html(title, tasks):

@@ -2,6 +2,7 @@ import pytest
 from pyscrum.backlog import Backlog
 from pyscrum.task import Task
 
+
 def test_add_task():
     backlog = Backlog()
     task = Task("Backlog Task", "Testing add")
@@ -10,6 +11,7 @@ def test_add_task():
     assert task in backlog.tasks
     assert len(backlog.tasks) == 1
 
+
 def test_add_duplicate_task():
     backlog = Backlog()
     task = Task("Duplicate Task")
@@ -17,6 +19,7 @@ def test_add_duplicate_task():
     backlog.add_task(task)
 
     assert len(backlog.tasks) == 1  # Should not add twice
+
 
 def test_remove_existing_task():
     backlog = Backlog()
@@ -27,10 +30,12 @@ def test_remove_existing_task():
     assert task not in backlog.tasks
     assert len(backlog.tasks) == 0
 
+
 def test_remove_nonexistent_task():
     backlog = Backlog()
     with pytest.raises(ValueError):
         backlog.remove_task("nonexistent-id")
+
 
 def test_get_existing_task():
     backlog = Backlog()
@@ -40,10 +45,12 @@ def test_get_existing_task():
 
     assert found == task
 
+
 def test_get_nonexistent_task():
     backlog = Backlog()
     with pytest.raises(ValueError):
         backlog.get_task("ghost-id")
+
 
 def test_clear_backlog():
     backlog = Backlog()
@@ -54,6 +61,7 @@ def test_clear_backlog():
 
     backlog.clear()
     assert len(backlog.tasks) == 0
+
 
 def test_repr_format():
     backlog = Backlog()

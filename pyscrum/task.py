@@ -51,24 +51,28 @@ class Task:
         self.description = description
         self.save()
         return self
+
     @staticmethod
     def search(query):
         """Search for tasks by title or description."""
         results = []
         try:
             with get_connection() as conn:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     SELECT id, title, description, status
                     FROM tasks
                     WHERE title LIKE ? OR description LIKE ?
-                """, (f"%{query}%", f"%{query}%"))
+                """,
+                    (f"%{query}%", f"%{query}%"),
+                )
                 for row in cursor.fetchall():
                     task = Task(row[1], row[2], row[3], row[0])
                     results.append(task)
         except sqlite3.OperationalError:
             pass
         return results
-    
+
     @staticmethod
     def list_all(status=None):
         """Return all tasks from DB, optionally filtered by status."""
@@ -76,9 +80,14 @@ class Task:
         try:
             with get_connection() as conn:
                 if status:
-                    cursor = conn.execute("SELECT id, title, description, status FROM tasks WHERE status=?", (status,))
+                    cursor = conn.execute(
+                        "SELECT id, title, description, status FROM tasks WHERE status=?",
+                        (status,),
+                    )
                 else:
-                    cursor = conn.execute("SELECT id, title, description, status FROM tasks")
+                    cursor = conn.execute(
+                        "SELECT id, title, description, status FROM tasks"
+                    )
                 for row in cursor.fetchall():
                     tasks.append(Task(row[1], row[2], row[3], row[0]))
         except sqlite3.OperationalError:
@@ -90,18 +99,18 @@ class Task:
         """Load task by ID prefix (min. 4 chars)."""
         if len(prefix) < 4:
             raise ValueError("Prefix too short, must be at least 4 characters.")
-        
+
         with get_connection() as conn:
             cursor = conn.execute(
                 "SELECT id, title, description, status FROM tasks WHERE id LIKE ?",
-                (f"{prefix}%",)
+                (f"{prefix}%",),
             )
             matches = cursor.fetchall()
             if not matches:
                 raise ValueError("Task not found.")
             if len(matches) > 1:
                 raise ValueError("Multiple tasks match the prefix.")
-            
+
             row = matches[0]
             return Task(row[1], row[2], row[3], row[0])
 

@@ -2,6 +2,7 @@ import sqlite3
 from .database import get_connection
 from .task import Task
 
+
 class Sprint:
     def __init__(self, name):
         self.name = name
@@ -13,16 +14,21 @@ class Sprint:
         """Load tasks assigned to this sprint from the database."""
         try:
             with get_connection() as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS sprint_tasks (
                         sprint_name TEXT,
                         task_id TEXT,
                         PRIMARY KEY (sprint_name, task_id)
                     )
-                """)
-                cursor = conn.execute("""
+                """
+                )
+                cursor = conn.execute(
+                    """
                     SELECT task_id FROM sprint_tasks WHERE sprint_name=?
-                """, (self.name,))
+                """,
+                    (self.name,),
+                )
                 task_ids = cursor.fetchall()
                 self.tasks = []
                 for task_id in task_ids:
@@ -38,21 +44,29 @@ class Sprint:
         """Persist the sprint and task assignments to the database."""
         try:
             with get_connection() as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS sprints (
                         name TEXT PRIMARY KEY,
                         status TEXT DEFAULT 'Planned'
                     )
-                """)
-                conn.execute("""
+                """
+                )
+                conn.execute(
+                    """
                     INSERT OR REPLACE INTO sprints (name, status)
                     VALUES (?, ?)
-                """, (self.name, self.status))
+                """,
+                    (self.name, self.status),
+                )
                 for task in self.tasks:
-                    conn.execute("""
+                    conn.execute(
+                        """
                         INSERT OR IGNORE INTO sprint_tasks (sprint_name, task_id)
                         VALUES (?, ?)
-                    """, (self.name, task.id))
+                    """,
+                        (self.name, task.id),
+                    )
         except sqlite3.OperationalError:
             pass
 
@@ -73,13 +87,16 @@ class Sprint:
 
     def remove_task(self, task_or_id):
         """Remove a Task by object or ID."""
-        task_id = task_or_id.id if hasattr(task_or_id, 'id') else task_or_id
+        task_id = task_or_id.id if hasattr(task_or_id, "id") else task_or_id
         self.tasks = [task for task in self.tasks if task.id != task_id]
         try:
             with get_connection() as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     DELETE FROM sprint_tasks WHERE sprint_name=? AND task_id=?
-                """, (self.name, task_id))
+                """,
+                    (self.name, task_id),
+                )
         except sqlite3.OperationalError:
             pass
 
@@ -106,12 +123,18 @@ class Sprint:
         old_name = self.name
         try:
             with get_connection() as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     UPDATE sprints SET name=? WHERE name=?
-                """, (new_name, old_name))
-                conn.execute("""
+                """,
+                    (new_name, old_name),
+                )
+                conn.execute(
+                    """
                     UPDATE sprint_tasks SET sprint_name=? WHERE sprint_name=?
-                """, (new_name, old_name))
+                """,
+                    (new_name, old_name),
+                )
             self.name = new_name  # Update in-memory only after DB update succeeds
         except (sqlite3.OperationalError, sqlite3.IntegrityError):
             pass
@@ -134,7 +157,9 @@ class Sprint:
         """Load a Sprint instance from the database by its name, including its tasks."""
         try:
             with get_connection() as conn:
-                cursor = conn.execute("SELECT name, status FROM sprints WHERE name=?", (name,))
+                cursor = conn.execute(
+                    "SELECT name, status FROM sprints WHERE name=?", (name,)
+                )
                 row = cursor.fetchone()
                 if not row:
                     raise ValueError(f"Sprint '{name}' not found.")
@@ -155,9 +180,11 @@ class Sprint:
         if export_to:
             from pathlib import Path
             from html import escape
+
             filename = export_to.lower()
             if filename.endswith(".csv"):
                 import csv
+
                 with open(filename, mode="w", newline="", encoding="utf-8") as file:
                     writer = csv.writer(file)
                     writer.writerow(["Task ID", "Title", "Description", "Status"])
@@ -172,6 +199,7 @@ class Sprint:
                 Path(filename).write_text(html, encoding="utf-8")
 
         return filtered
+
     def archive(self):
         """Mark sprint as archived."""
         self.status = "Archived"
@@ -182,18 +210,17 @@ class Sprint:
         """Load sprint by name prefix (requires unique match)."""
         if len(prefix) < 3:
             raise ValueError("Prefix too short, must be at least 3 characters.")
-        
+
         with get_connection() as conn:
             cursor = conn.execute(
-                "SELECT name, status FROM sprints WHERE name LIKE ?",
-                (f"{prefix}%",)
+                "SELECT name, status FROM sprints WHERE name LIKE ?", (f"{prefix}%",)
             )
             rows = cursor.fetchall()
             if not rows:
                 raise ValueError("Sprint not found.")
             if len(rows) > 1:
                 raise ValueError("Multiple sprints match the prefix.")
-            
+
             name, status = rows[0]
             sprint = cls(name)
             sprint.status = status

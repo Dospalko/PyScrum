@@ -15,7 +15,7 @@ def export_tasks_to_csv(filename="tasks_report.csv"):
 
 
 def export_sprint_report_to_csv(sprint_name, filename=None):
-    filename = filename or f"{sprint_name}_report.csv"
+    filename = filename or f"{sprint_name.replace(' ', '_')}_report.csv"
     with get_connection() as conn:
         cursor = conn.execute(
             """
@@ -23,15 +23,18 @@ def export_sprint_report_to_csv(sprint_name, filename=None):
             FROM tasks t
             JOIN sprint_tasks st ON t.id = st.task_id
             WHERE st.sprint_name = ?
-        """,
+            """,
             (sprint_name,),
         )
         sprint_tasks = cursor.fetchall()
 
+    # Always generate the file, even if empty
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(["Task ID", "Title", "Description", "Status"])
-        writer.writerows(sprint_tasks)
+        if sprint_tasks:
+            writer.writerows(sprint_tasks)
+
 
 
 def export_tasks_to_html(filename="tasks_report.html"):
@@ -52,13 +55,14 @@ def export_sprint_report_to_html(sprint_name, filename=None):
             FROM tasks t
             JOIN sprint_tasks st ON t.id = st.task_id
             WHERE st.sprint_name = ?
-        """,
+            """,
             (sprint_name,),
         )
         tasks = cursor.fetchall()
 
     html_content = _render_html(f"Sprint Report: {sprint_name}", tasks)
     Path(filename).write_text(html_content, encoding="utf-8")
+
 
 
 def _render_html(title, tasks):

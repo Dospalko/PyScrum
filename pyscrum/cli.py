@@ -51,13 +51,12 @@ def start_sprint(name: str):
 def set_status(task_id: str, status: str):
     """Set the status of a task (todo, in_progress, done)."""
     try:
-        task = Task.load(task_id)
+        task = Task.load_by_prefix(task_id)
         task.set_status(status)
-        typer.echo(f"✅ Task {task_id} status updated to {status}")
-    except ValueError:
-        typer.echo("❌ Task not found.")
-    except Exception as e:
-        typer.echo(f"❌ Error: {e}")
+        typer.echo(f"✅ Task {task.id} status updated to {status}")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
+
 
 @app.command()
 def archive_sprint(name: str):
@@ -104,20 +103,23 @@ def create_sprint(name: str):
 def get_task(task_id: str):
     """Get details of a specific task."""
     try:
-        task = Task.load(task_id)
+        task = Task.load_by_prefix(task_id)
         typer.echo(f"🔍 Task found:\n{task}")
-    except ValueError:
-        typer.echo("❌ Task not found.")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
+
 
 @app.command()
 def remove_task(task_id: str):
     """Remove a task from the backlog and database."""
     try:
         backlog = Backlog()
-        backlog.remove_task(task_id)
-        typer.echo(f"🗑️ Task {task_id} removed from backlog.")
-    except ValueError:
-        typer.echo("❌ Task not found in backlog.")
+        task = Task.load_by_prefix(task_id)
+        backlog.remove_task(task.id)
+        typer.echo(f"🗑️ Task {task.id} removed from backlog.")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
+
 
 @app.command()
 def export_sprint_report(name: str):

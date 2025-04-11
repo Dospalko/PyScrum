@@ -3,7 +3,10 @@ from pyscrum.database import init_db
 from pyscrum.task import Task
 from pyscrum.backlog import Backlog
 from pyscrum.sprint import Sprint
-
+from pyscrum.reports import (
+    export_sprint_report_to_csv,
+    export_sprint_report_to_html,
+)
 app = typer.Typer()
 
 @app.command()

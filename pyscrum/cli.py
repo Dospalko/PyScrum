@@ -66,5 +66,16 @@ def archive_sprint(name: str):
     except ValueError:
         typer.echo(f"❌ Sprint '{name}' not found.")
 
+@app.command()
+def list_backlog():
+    """List all tasks currently in the backlog."""
+    backlog = Backlog()
+    if not backlog.tasks:
+        typer.echo("📭 Backlog is empty.")
+        return
+    typer.echo("📋 Backlog:")
+    for task in backlog.tasks:
+        typer.echo(f" - {task}")
+
 if __name__ == "__main__":
     app()

@@ -1,8 +1,19 @@
 site_name: PyScrum
-repo_url: https://github.com/dospalko/pyscrum
+site_description: Minimalist Scrum tool for developers
+site_author: dospalko
 theme:
   name: material
+
 nav:
   - Home: index.md
-  - CLI Reference: cli.md
-  - Python Library: api.md
+  - CLI Usage: cli.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - tables
+  - admonition
+  - codehilite
+  - footnotes
+  - meta
+  - def_list

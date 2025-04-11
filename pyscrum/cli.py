@@ -116,5 +116,15 @@ def remove_task(task_id: str):
     except ValueError:
         typer.echo("❌ Task not found in backlog.")
 
+@app.command()
+def export_sprint_report(name: str):
+    """Export sprint report to CSV and HTML."""
+    try:
+        export_sprint_report_to_csv(name)
+        export_sprint_report_to_html(name)
+        typer.echo(f"📤 Exported sprint '{name}' report to CSV and HTML.")
+    except Exception as e:
+        typer.echo(f"❌ Failed to export sprint report: {e}")
+
 if __name__ == "__main__":
     app()

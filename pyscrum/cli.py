@@ -44,6 +44,18 @@ def start_sprint(name: str):
     except ValueError:
         typer.echo(f"❌ Sprint '{name}' not found.")
 
+@app.command()
+def set_status(task_id: str, status: str):
+    """Set the status of a task (todo, in_progress, done)."""
+    try:
+        task = Task.load(task_id)
+        task.set_status(status)
+        typer.echo(f"✅ Task {task_id} status updated to {status}")
+    except ValueError:
+        typer.echo("❌ Task not found.")
+    except Exception as e:
+        typer.echo(f"❌ Error: {e}")
+
 
 if __name__ == "__main__":
     app()

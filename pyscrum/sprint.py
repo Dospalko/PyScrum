@@ -178,6 +178,29 @@ class Sprint:
         self.save()
 
     @classmethod
+    def from_name_prefix(cls, prefix: str):
+        """Load sprint by name prefix (requires unique match)."""
+        if len(prefix) < 3:
+            raise ValueError("Prefix too short, must be at least 3 characters.")
+        
+        with get_connection() as conn:
+            cursor = conn.execute(
+                "SELECT name, status FROM sprints WHERE name LIKE ?",
+                (f"{prefix}%",)
+            )
+            rows = cursor.fetchall()
+            if not rows:
+                raise ValueError("Sprint not found.")
+            if len(rows) > 1:
+                raise ValueError("Multiple sprints match the prefix.")
+            
+            name, status = rows[0]
+            sprint = cls(name)
+            sprint.status = status
+            sprint._load_tasks()
+            return sprint
+
+    @classmethod
     def list_all(cls):
         """Return a list of all Sprint instances stored in the database."""
         sprints = []

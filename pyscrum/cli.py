@@ -129,5 +129,6 @@ def export_sprint_report(name: str):
     except Exception as e:
         typer.echo(f"❌ Failed to export sprint report: {e}")
 
+
 if __name__ == "__main__":
     app()

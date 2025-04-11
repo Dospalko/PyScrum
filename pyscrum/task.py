@@ -85,6 +85,25 @@ class Task:
             pass
         return tasks
 
+    @staticmethod
+    def load_by_prefix(prefix: str):
+        """Load task by ID prefix (min. 4 chars)."""
+        if len(prefix) < 4:
+            raise ValueError("Prefix too short, must be at least 4 characters.")
+        
+        with get_connection() as conn:
+            cursor = conn.execute(
+                "SELECT id, title, description, status FROM tasks WHERE id LIKE ?",
+                (f"{prefix}%",)
+            )
+            matches = cursor.fetchall()
+            if not matches:
+                raise ValueError("Task not found.")
+            if len(matches) > 1:
+                raise ValueError("Multiple tasks match the prefix.")
+            
+            row = matches[0]
+            return Task(row[1], row[2], row[3], row[0])
 
     def __repr__(self):
         return f"<Task {self.id[:8]}: {self.title} [{self.status}]>"

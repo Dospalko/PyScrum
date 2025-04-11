@@ -56,6 +56,15 @@ def set_status(task_id: str, status: str):
     except Exception as e:
         typer.echo(f"❌ Error: {e}")
 
+@app.command()
+def archive_sprint(name: str):
+    """Archive a sprint (sets status to Archived)."""
+    try:
+        sprint = Sprint.from_name(name)
+        sprint.archive()
+        typer.echo(f"📦 Sprint '{name}' archived.")
+    except ValueError:
+        typer.echo(f"❌ Sprint '{name}' not found.")
 
 if __name__ == "__main__":
     app()

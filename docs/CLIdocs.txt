@@ -1,0 +1,110 @@
+
+
+
+**PyScrum CLI Guide**
+
+The **PyScrum CLI** is a command-line interface built using [Typer](https://typer.tiangolo.com/) that lets you manage your tasks, backlogs, and sprints directly from the terminal.
+
+---
+
+**Installation**
+
+Make sure you have the library installed:
+
+```
+pip install git+https://github.com/dospalko/pyscrum.git@main
+```
+
+Once installed, you can use the CLI via:
+
+```
+pyscrum --help
+```
+
+---
+
+**Commands Overview**
+
+| Command                | Description                                  |
+|------------------------|----------------------------------------------|
+| `init`                 | Initialize the SQLite database               |
+| `add-task`             | Add a new task to the backlog                |
+| `remove-task`          | Remove a task from the backlog and DB        |
+| `list-backlog`         | List all tasks currently in the backlog      |
+| `list-tasks`           | (Alias) List all backlog tasks               |
+| `list-tasks-by-status` | Show tasks by status: todo, in_progress, done|
+| `get-task`             | Show task detail using full or prefix ID     |
+| `set-status`           | Change task status (todo, in_progress, done)|
+| `create-sprint`        | Create a new sprint                          |
+| `start-sprint`         | Start a sprint (In Progress) by name or prefix|
+| `archive-sprint`       | Mark a sprint as archived                    |
+| `export-sprint-report` | Export a sprint report to .csv and .html     |
+
+---
+
+**Examples**
+
+1.  **Initialize the system**
+    ```
+    pyscrum init
+    ```
+
+2.  **Add and list tasks**
+    ```
+    pyscrum add-task "Create API" --description "Build core endpoints"
+    pyscrum list-backlog
+    ```
+
+3.  **Get a task by ID (or prefix)**
+    ```
+    pyscrum get-task 9cb358c3
+    ```
+
+4.  **Change task status**
+    ```
+    pyscrum set-status 9cb358c3 in_progress
+    ```
+
+5.  **Sprint operations**
+    ```
+    pyscrum create-sprint "Sprint 1"
+    pyscrum start-sprint "Spr"   # supports prefix
+    pyscrum archive-sprint "Sprint 1"
+    ```
+
+6.  **Filter by status**
+    ```
+    pyscrum list-tasks-by-status done
+    ```
+
+7.  **Export sprint report**
+    ```
+    pyscrum export-sprint-report "Sprint 1"
+    # Creates: Sprint_1_report.csv, Sprint_1_report.html
+    ```
+
+---
+
+**Notes**
+
+*   All task/sprint IDs support prefix matching (at least 3 characters).
+*   Database is stored in `pyscrum.db` by default.
+*   Status options are case-insensitive: `todo`, `in_progress`, `done`.
+
+---
+
+**Testing the CLI**
+
+To run all CLI tests and see coverage:
+
+```
+pytest tests/test_cli.py --cov=pyscrum --cov-report=term
+```
+
+You can also use a Makefile:
+
+```
+make test
+```
+
+---

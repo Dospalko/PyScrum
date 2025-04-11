@@ -1,0 +1,6 @@
+typer
+pytest
+pytest-cov
+mypy
+black
+ruff

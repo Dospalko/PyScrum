@@ -88,5 +88,13 @@ def list_tasks_by_status(status: str):
     for task in tasks:
         typer.echo(f"- {task}")
 
+
+@app.command()
+def create_sprint(name: str):
+    """Create a new sprint."""
+    sprint = Sprint(name)
+    sprint.save()
+    typer.echo(f"✅ Sprint '{name}' created.")
+
 if __name__ == "__main__":
     app()

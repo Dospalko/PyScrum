@@ -96,5 +96,15 @@ def create_sprint(name: str):
     sprint.save()
     typer.echo(f"✅ Sprint '{name}' created.")
 
+
+@app.command()
+def get_task(task_id: str):
+    """Get details of a specific task."""
+    try:
+        task = Task.load(task_id)
+        typer.echo(f"🔍 Task found:\n{task}")
+    except ValueError:
+        typer.echo("❌ Task not found.")
+
 if __name__ == "__main__":
     app()

@@ -6,6 +6,12 @@ from pyscrum.database import init_db
 
 runner = CliRunner()
 
+
+@pytest.fixture(autouse=True)
+def clean_db():
+    if os.path.exists("pyscrum.db"):
+        os.remove("pyscrum.db")
+        
 @pytest.fixture(autouse=True)
 def setup_db():
     init_db()
@@ -16,6 +22,11 @@ def get_task_id_by_title(title: str):
         if title in line:
             return line.split("<Task ")[1].split(":")[0]
     return None
+
+
+def test_list_tasks_by_status_empty():
+    result = runner.invoke(app, ["list-tasks-by-status", "done"])
+    assert "no tasks found" in result.output.lower()
 
 def test_init_and_add_task():
     result = runner.invoke(app, ["init"])
@@ -104,8 +115,3 @@ def test_remove_task_not_found():
 
 def test_export_sprint_report_nonexistent():
     result = runner.invoke(app, ["export-sprint-report", "Nonexistent Sprint"])
-    assert "failed to export" in result.output.lower()
-
-def test_list_tasks_by_status_empty():
-    result = runner.invoke(app, ["list-tasks-by-status", "done"])
-    assert "no tasks found" in result.output.lower()

@@ -1,0 +1,8 @@
+site_name: PyScrum
+repo_url: https://github.com/dospalko/pyscrum
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - CLI Reference: cli.md
+  - Python Library: api.md

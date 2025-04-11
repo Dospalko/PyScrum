@@ -2,6 +2,7 @@ import typer
 from pyscrum.database import init_db
 from pyscrum.task import Task
 from pyscrum.backlog import Backlog
+from pyscrum.sprint import Sprint
 
 app = typer.Typer()
 
@@ -30,6 +31,19 @@ def list_tasks():
     typer.echo("📋 Backlog tasks:")
     for task in backlog.tasks:
         typer.echo(f" - {task}")
+
+
+
+@app.command()
+def start_sprint(name: str):
+    """Start a sprint (sets status to In Progress)."""
+    try:
+        sprint = Sprint.from_name(name)
+        sprint.start()
+        typer.echo(f"🚀 Sprint '{name}' started.")
+    except ValueError:
+        typer.echo(f"❌ Sprint '{name}' not found.")
+
 
 if __name__ == "__main__":
     app()

@@ -87,3 +87,25 @@ def test_get_nonexistent_task():
 def test_remove_nonexistent_task():
     result = runner.invoke(app, ["remove-task", "invalid"])
     assert "not found" in result.output or "❌" in result.output
+
+def test_list_tasks():
+    runner.invoke(app, ["add-task", "Test List Tasks", "--description", "test"])
+    result = runner.invoke(app, ["list-tasks"])
+    assert "Backlog tasks" in result.output
+    assert "Test List Tasks" in result.output
+
+def test_get_task_not_found():
+    result = runner.invoke(app, ["get-task", "nonexistent"])
+    assert "not found" in result.output.lower()
+
+def test_remove_task_not_found():
+    result = runner.invoke(app, ["remove-task", "invalid"])
+    assert "not found" in result.output.lower()
+
+def test_export_sprint_report_nonexistent():
+    result = runner.invoke(app, ["export-sprint-report", "Nonexistent Sprint"])
+    assert "failed to export" in result.output.lower()
+
+def test_list_tasks_by_status_empty():
+    result = runner.invoke(app, ["list-tasks-by-status", "done"])
+    assert "no tasks found" in result.output.lower()

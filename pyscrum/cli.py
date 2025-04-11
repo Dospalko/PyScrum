@@ -41,11 +41,12 @@ def list_tasks():
 def start_sprint(name: str):
     """Start a sprint (sets status to In Progress)."""
     try:
-        sprint = Sprint.from_name(name)
+        sprint = Sprint.from_name_prefix(name)
         sprint.start()
-        typer.echo(f"🚀 Sprint '{name}' started.")
-    except ValueError:
-        typer.echo(f"❌ Sprint '{name}' not found.")
+        typer.echo(f"🚀 Sprint '{sprint.name}' started.")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
+
 
 @app.command()
 def set_status(task_id: str, status: str):

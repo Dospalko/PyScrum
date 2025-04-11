@@ -106,5 +106,15 @@ def get_task(task_id: str):
     except ValueError:
         typer.echo("❌ Task not found.")
 
+@app.command()
+def remove_task(task_id: str):
+    """Remove a task from the backlog and database."""
+    try:
+        backlog = Backlog()
+        backlog.remove_task(task_id)
+        typer.echo(f"🗑️ Task {task_id} removed from backlog.")
+    except ValueError:
+        typer.echo("❌ Task not found in backlog.")
+
 if __name__ == "__main__":
     app()

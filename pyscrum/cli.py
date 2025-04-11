@@ -77,5 +77,16 @@ def list_backlog():
     for task in backlog.tasks:
         typer.echo(f" - {task}")
 
+
+@app.command()
+def list_tasks_by_status(status: str):
+    """List all tasks filtered by status."""
+    tasks = Task.list_all(status=status)
+    if not tasks:
+        typer.echo(f"No tasks found with status '{status}'.")
+        return
+    for task in tasks:
+        typer.echo(f"- {task}")
+
 if __name__ == "__main__":
     app()

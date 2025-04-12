@@ -148,6 +148,15 @@ def add_to_sprint(task_id: str, sprint_name: str):
         typer.echo(f"✅ Task {task.id} added to sprint '{sprint_name}'")
     except ValueError as e:
         typer.echo(f"❌ {e}")
-        
+
+@app.command()
+def remove_from_sprint(task_id: str, sprint_name: str):
+    """Remove a task from a sprint."""
+    try:
+        sprint = Sprint.from_name(sprint_name)
+        sprint.remove_task(task_id)
+        typer.echo(f"✅ Task {task_id} removed from sprint '{sprint_name}'")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")       
 if __name__ == "__main__":
     app()

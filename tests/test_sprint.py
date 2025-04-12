@@ -55,22 +55,26 @@ def test_start_and_complete_sprint():
 
 
 def test_get_tasks_by_status():
-    sprint = Sprint("FilterStatusSprint")
-    task1 = Task("Task 1", "desc", status="todo")
-    task2 = Task("Task 2", "desc", status="done")
-    task1.save()
-    task2.save()
-
+    sprint = Sprint("Test Sprint")
+    task1 = Task("Task 1")
+    task2 = Task("Task 2")
+    
+    # Add tasks to sprint
     sprint.add_task(task1)
     sprint.add_task(task2)
-
-    todo_tasks = sprint.get_tasks_by_status("todo")
+    
+    # Set status manually
+    task1.set_status("done")
+    task2.set_status("in_progress")
+    
+    # Test filtering
     done_tasks = sprint.get_tasks_by_status("done")
-
-    assert len(todo_tasks) == 1
-    assert todo_tasks[0].status == "todo"
+    in_progress_tasks = sprint.get_tasks_by_status("in_progress")
+    
     assert len(done_tasks) == 1
-    assert done_tasks[0].status == "done"
+    assert len(in_progress_tasks) == 1
+    assert task1 in done_tasks
+    assert task2 in in_progress_tasks
 
 
 def test_update_sprint_name():

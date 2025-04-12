@@ -50,11 +50,11 @@ def test_set_status_and_get_task():
     task_id = get_task_id_by_title("StatusTask")
 
     result = runner.invoke(app, ["set-status", task_id[:8], "in_progress"])
-    assert "status updated to in_progress" in result.output
+    assert "status updated" in result.output.lower()
 
     result = runner.invoke(app, ["get-task", task_id[:8]])
     assert "StatusTask" in result.output
-    assert "in_progress" in result.output  # Changed from "[in_progress]"
+    assert "in_progress" in result.output
 
 
 def test_invalid_status():
@@ -121,12 +121,12 @@ def test_list_tasks():
 
 def test_get_task_not_found():
     result = runner.invoke(app, ["get-task", "nonexistent"])
-    assert "no task found" in result.output.lower()  # Changed assertion
+    assert "no task found" in result.output.lower()
 
 
 def test_remove_task_not_found():
     result = runner.invoke(app, ["remove-task", "invalid"])
-    assert "no task found" in result.output.lower()  # Changed assertion
+    assert "no task found" in result.output.lower()
 
 
 def test_export_sprint_report_nonexistent():

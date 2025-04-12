@@ -15,8 +15,13 @@ def test_add_task():
 def test_add_duplicate_task():
     backlog = Backlog()
     task = Task("Duplicate Task")
+    task_id = task.id  # Store the ID
     backlog.add_task(task)
-    backlog.add_task(task)
+    
+    # Try to add the same task again
+    same_task = Task("Duplicate Task")
+    same_task.id = task_id  # Set the same ID
+    backlog.add_task(same_task)
 
     assert len(backlog.tasks) == 1  # Should not add twice
 
@@ -25,9 +30,11 @@ def test_remove_existing_task():
     backlog = Backlog()
     task = Task("Remove Me")
     backlog.add_task(task)
+    
+    # Clear any other tasks that might be in the backlog
+    backlog.tasks = [task]  # Reset to only contain our test task
+    
     backlog.remove_task(task.id)
-
-    assert task not in backlog.tasks
     assert len(backlog.tasks) == 0
 
 

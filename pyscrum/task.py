@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from .database import get_connection
 
 
@@ -6,22 +7,31 @@ class Task:
     STATUS_OPTIONS = {"todo", "in_progress", "done"}
     PRIORITY_OPTIONS = {"high", "medium", "low"}
 
-    def __init__(self, title, description="", status="todo", task_id=None, priority="medium"):
-        self.id = task_id or str(uuid.uuid4())
+    def __init__(self, title, description="", priority="medium"):
+        self.id = str(uuid.uuid4())
         self.title = title
         self.description = description
-        self.status = status
+        self.status = "todo"
         self.priority = priority
+        self.created_at = datetime.now().isoformat()
+        self.save()
 
     def save(self):
         """Persist task to database."""
+        current_time = datetime.now().isoformat()
+        if not hasattr(self, 'created_at'):
+            self.created_at = current_time
+        self.updated_at = current_time
+        
         with get_connection() as conn:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO tasks (id, title, description, status, priority)
-                VALUES (?, ?, ?, ?, ?)
-            """,
-                (self.id, self.title, self.description, self.status, self.priority),
+                INSERT OR REPLACE INTO tasks 
+                (id, title, description, status, priority, created_at, updated_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (self.id, self.title, self.description, self.status, 
+                 self.priority, self.created_at, self.updated_at),
             )
 
     @staticmethod
@@ -29,13 +39,21 @@ class Task:
         """Load task from database."""
         with get_connection() as conn:
             cursor = conn.execute(
-                "SELECT id, title, description, status, priority FROM tasks WHERE id=?",
+                """SELECT id, title, description, status, priority, 
+                      created_at, updated_at 
+                   FROM tasks WHERE id=?""",
                 (task_id,),
             )
             row = cursor.fetchone()
             if row:
-                task = Task(row[1], row[2], row[3], row[0])
+                task = Task.__new__(Task)
+                task.id = row[0]
+                task.title = row[1]
+                task.description = row[2]
+                task.status = row[3]
                 task.priority = row[4]
+                task.created_at = row[5]
+                task.updated_at = row[6]
                 return task
             else:
                 raise ValueError("Task not found")
@@ -60,28 +78,32 @@ class Task:
     def search(query):
         """Search for tasks by title or description."""
         results = []
-        try:
-            with get_connection() as conn:
-                cursor = conn.execute(
-                    """
-                    SELECT id, title, description, status
-                    FROM tasks
-                    WHERE title LIKE ? OR description LIKE ?
+        with get_connection() as conn:
+            cursor = conn.execute(
+                """
+                SELECT id, title, description, status, priority
+                FROM tasks
+                WHERE title LIKE ? OR description LIKE ?
                 """,
-                    (f"%{query}%", f"%{query}%"),
-                )
-                for row in cursor.fetchall():
-                    task = Task(row[1], row[2], row[3], row[0])
-                    results.append(task)
-        except sqlite3.OperationalError:
-            pass
+                (f"%{query}%", f"%{query}%"),
+            )
+            for row in cursor.fetchall():
+                # Create task instance without saving
+                task = Task.__new__(Task)
+                task.id = row[0]
+                task.title = row[1]
+                task.description = row[2]
+                task.status = row[3]
+                task.priority = row[4]
+                results.append(task)
         return results
 
     @staticmethod
     def list_all(status=None, priority=None):
         """List all tasks, optionally filtered by status and/or priority."""
         with get_connection() as conn:
-            query = "SELECT id, title, description, status, priority FROM tasks"
+            query = """SELECT id, title, description, status, priority, created_at 
+                      FROM tasks"""
             conditions = []
             params = []
             
@@ -98,8 +120,13 @@ class Task:
             cursor = conn.execute(query, params)
             tasks = []
             for row in cursor.fetchall():
-                task = Task(row[1], row[2], row[3], row[0])
+                task = Task.__new__(Task)
+                task.id = row[0]
+                task.title = row[1]
+                task.description = row[2]
+                task.status = row[3]
                 task.priority = row[4]
+                task.created_at = row[5]
                 tasks.append(task)
             return tasks
 
@@ -111,7 +138,8 @@ class Task:
         
         with get_connection() as conn:
             cursor = conn.execute(
-                "SELECT id, title, description, status, priority FROM tasks WHERE id LIKE ?",
+                """SELECT id, title, description, status, priority, created_at 
+                   FROM tasks WHERE id LIKE ?""",
                 (f"{prefix}%",),
             )
             rows = cursor.fetchall()
@@ -121,15 +149,36 @@ class Task:
                 raise ValueError(f"Multiple tasks found with prefix '{prefix}'")
             
             row = rows[0]
-            task = Task(row[1], row[2], row[3], row[0])
+            task = Task.__new__(Task)
+            task.id = row[0]
+            task.title = row[1]
+            task.description = row[2]
+            task.status = row[3]
             task.priority = row[4]
+            task.created_at = row[5]
             return task
-    
+
+    @classmethod
+    def load_all(cls):
+        """Load all tasks from the database."""
+        with get_connection() as conn:
+            cursor = conn.execute("SELECT id, title, description, status, priority FROM tasks")
+            tasks = []
+            for row in cursor:
+                # Create task instance without saving
+                task = cls.__new__(cls)
+                task.id = row[0]
+                task.title = row[1]
+                task.description = row[2]
+                task.status = row[3]
+                task.priority = row[4]
+                tasks.append(task)
+            return tasks
+
     def set_priority(self, priority):
-        """Set task priority."""
-        priority = priority.lower()
-        if priority not in self.PRIORITY_OPTIONS:
-            raise ValueError(f"Invalid priority. Must be one of: {', '.join(self.PRIORITY_OPTIONS)}")
+        """Set the priority of the task."""
+        if priority not in ["low", "medium", "high"]:
+            raise ValueError("Priority must be one of: low, medium, high")
         self.priority = priority
         self.save()
 

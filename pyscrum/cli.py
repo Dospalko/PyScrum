@@ -20,10 +20,15 @@ def init():
 
 @app.command()
 def add_task(
-    title: str, description: str = typer.Option("", help="Optional task description")
+    title: str,
+    description: str = typer.Option("", help="Optional task description"),
+    priority: str = typer.Option("medium", help="Task priority (low/medium/high)")
 ):
     """Add a new task to the backlog."""
-    task = Task(title, description)
+    if priority not in ["low", "medium", "high"]:
+        typer.echo("❌ Priority must be one of: low, medium, high")
+        return
+    task = Task(title, description, priority)
     task.save()
     backlog = Backlog()
     backlog.add_task(task)
@@ -226,13 +231,20 @@ def set_priority(task_id: str, priority: str = typer.Option(..., help="high/medi
 
 @app.command()
 def list_by_priority(priority: str):
-    """List tasks by priority."""
-    tasks = Task.list_all(priority=priority)
-    if not tasks:
+    """List all tasks with specified priority."""
+    if priority not in ["low", "medium", "high"]:
+        typer.echo("❌ Priority must be one of: low, medium, high")
+        return
+    
+    tasks = Task.load_all()
+    priority_tasks = [task for task in tasks if task.priority == priority]
+    
+    if not priority_tasks:
         typer.echo(f"No tasks with priority '{priority}'")
         return
+    
     typer.echo(f"📋 Tasks with {priority} priority:")
-    for task in tasks:
+    for task in priority_tasks:
         typer.echo(f" - {task}")
 if __name__ == "__main__":
     app()

@@ -213,5 +213,15 @@ def sprint_stats(sprint_name: str):
             typer.echo(f"Progress: {progress:.1f}%")
     except ValueError as e:
         typer.echo(f"❌ {e}")
+
+@app.command()
+def set_priority(task_id: str, priority: str = typer.Option(..., help="high/medium/low")):
+    """Set task priority."""
+    try:
+        task = Task.load_by_prefix(task_id)
+        task.set_priority(priority)
+        typer.echo(f"✅ Task {task.id} priority set to {priority}")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
 if __name__ == "__main__":
     app()

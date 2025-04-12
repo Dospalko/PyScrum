@@ -223,5 +223,16 @@ def set_priority(task_id: str, priority: str = typer.Option(..., help="high/medi
         typer.echo(f"✅ Task {task.id} priority set to {priority}")
     except ValueError as e:
         typer.echo(f"❌ {e}")
+
+@app.command()
+def list_by_priority(priority: str):
+    """List tasks by priority."""
+    tasks = Task.list_all(priority=priority)
+    if not tasks:
+        typer.echo(f"No tasks with priority '{priority}'")
+        return
+    typer.echo(f"📋 Tasks with {priority} priority:")
+    for task in tasks:
+        typer.echo(f" - {task}")
 if __name__ == "__main__":
     app()

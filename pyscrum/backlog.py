@@ -8,6 +8,19 @@ class Backlog:
         self.tasks = []
         self._load_tasks()
 
+    @classmethod
+    def load(cls):
+        """Load backlog from database."""
+        backlog = cls()
+        try:
+            with get_connection() as conn:
+                cursor = conn.execute("SELECT task_id FROM backlog_tasks")
+                task_ids = [row[0] for row in cursor.fetchall()]
+                backlog.tasks = [Task.load(task_id) for task_id in task_ids]
+        except sqlite3.OperationalError:
+            pass
+        return backlog
+
     def _load_tasks(self):
         try:
             with get_connection() as conn:

@@ -171,6 +171,15 @@ class Task:
                 tasks.append(task)
             return tasks
 
+    @classmethod
+    def clear_all(cls):
+        """Clear all tasks from the database."""
+        try:
+            with get_connection() as conn:
+                conn.execute("DELETE FROM tasks")
+        except sqlite3.OperationalError:
+            pass
+
     def set_priority(self, priority):
         """Set the priority of the task."""
         if priority not in ["low", "medium", "high"]:

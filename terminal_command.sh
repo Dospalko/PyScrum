@@ -1,1 +1,0 @@
-chmod +x examples/cli_demo.sh

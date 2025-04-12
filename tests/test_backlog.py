@@ -95,3 +95,35 @@ def test_repr_format():
     result = repr(backlog)
     assert "Backlog" in result
     assert "1 tasks" in result
+
+
+def test_backlog_load():
+    backlog = Backlog()
+    task = Task("Load Test")
+    backlog.add_task(task)
+    loaded = Backlog.load()
+    assert len(loaded.tasks) == 1
+    assert loaded.tasks[0].id == task.id
+
+
+def test_backlog_get_task():
+    backlog = Backlog()
+    task = Task("Get Test")
+    backlog.add_task(task)
+    retrieved = backlog.get_task(task.id)
+    assert retrieved.id == task.id
+
+
+def test_backlog_remove_nonexistent():
+    backlog = Backlog()
+    task = Task("Nonexistent")
+    with pytest.raises(ValueError):
+        backlog.remove_task(task)
+
+
+def test_backlog_clear():
+    backlog = Backlog()
+    backlog.add_task(Task("Test 1"))
+    backlog.add_task(Task("Test 2"))
+    backlog.clear()
+    assert len(backlog.tasks) == 0

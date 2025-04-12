@@ -9,9 +9,20 @@ class Sprint:
 
     def __init__(self, name):
         self.name = name
-        self.status = "Planned"
+        self._status = "Planned"  # Use private attribute
         self.tasks = []
         self._load_tasks()
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        if value not in self.VALID_STATUSES:
+            raise ValueError(f"Invalid status. Must be one of: {', '.join(self.VALID_STATUSES)}")
+        self._status = value
+        self.save()
 
     def _load_tasks(self):
         """Load tasks assigned to this sprint from the database."""
@@ -215,11 +226,20 @@ class Sprint:
     def get_statistics(self):
         """Get sprint statistics."""
         total = len(self.tasks)
+        if total == 0:
+            return {
+                "total": 0,
+                "done": 0,
+                "in_progress": 0,
+                "todo": 0,
+                "progress": 0.0
+            }
+        
         done = len([t for t in self.tasks if t.status == "done"])
         in_progress = len([t for t in self.tasks if t.status == "in_progress"])
         todo = len([t for t in self.tasks if t.status == "todo"])
         
-        progress = (done / total * 100) if total > 0 else 0
+        progress = (done / total * 100) if total > 0 else 0.0
         
         return {
             "total": total,
@@ -261,6 +281,14 @@ class Sprint:
         sprints = []
         try:
             with get_connection() as conn:
+                # Ensure tables exist
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS sprints (
+                        name TEXT PRIMARY KEY,
+                        status TEXT DEFAULT 'Planned'
+                    )
+                """)
+                
                 cursor = conn.execute("SELECT name, status FROM sprints")
                 for row in cursor.fetchall():
                     sprint = cls(row[0])
@@ -268,6 +296,15 @@ class Sprint:
                     sprint._load_tasks()
                     sprints.append(sprint)
         except sqlite3.OperationalError:
-
             pass
         return sprints
+
+    @classmethod
+    def clear_all(cls):
+        """Clear all sprints from the database."""
+        try:
+            with get_connection() as conn:
+                conn.execute("DELETE FROM sprints")
+                conn.execute("DELETE FROM sprint_tasks")
+        except sqlite3.OperationalError:
+            pass

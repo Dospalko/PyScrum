@@ -31,10 +31,13 @@ class Backlog:
             self.tasks = []
 
     def add_task(self, task):
+        """Add a task to the backlog if it doesn't already exist."""
         if isinstance(task, str):
             task = Task(task)
 
-        if task not in self.tasks:
+        # Check if task with same ID already exists
+        existing_task_ids = {t.id for t in self.tasks}
+        if task.id not in existing_task_ids:
             self.tasks.append(task)
             try:
                 with get_connection() as conn:
@@ -42,7 +45,7 @@ class Backlog:
                         """
                         INSERT OR IGNORE INTO backlog_tasks (task_id)
                         VALUES (?)
-                    """,
+                        """,
                         (task.id,),
                     )
             except sqlite3.OperationalError:

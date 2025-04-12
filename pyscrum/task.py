@@ -14,14 +14,12 @@ class Task:
         self.status = "todo"
         self.priority = priority
         self.created_at = datetime.now().isoformat()
+        self.updated_at = datetime.now().isoformat()
         self.save()
 
     def save(self):
         """Persist task to database."""
-        current_time = datetime.now().isoformat()
-        if not hasattr(self, 'created_at'):
-            self.created_at = current_time
-        self.updated_at = current_time
+        self.updated_at = datetime.now().isoformat()
         
         with get_connection() as conn:
             conn.execute(
@@ -34,29 +32,27 @@ class Task:
                  self.priority, self.created_at, self.updated_at),
             )
 
-    @staticmethod
-    def load(task_id):
-        """Load task from database."""
+    @classmethod
+    def load(cls, task_id):
+        """Load a task from the database."""
         with get_connection() as conn:
-            cursor = conn.execute(
-                """SELECT id, title, description, status, priority, 
-                      created_at, updated_at 
-                   FROM tasks WHERE id=?""",
+            row = conn.execute(
+                """
+                SELECT id, title, description, status, priority, created_at, updated_at
+                FROM tasks WHERE id = ?
+                """,
                 (task_id,),
-            )
-            row = cursor.fetchone()
-            if row:
-                task = Task.__new__(Task)
-                task.id = row[0]
-                task.title = row[1]
-                task.description = row[2]
-                task.status = row[3]
-                task.priority = row[4]
-                task.created_at = row[5]
-                task.updated_at = row[6]
-                return task
-            else:
-                raise ValueError("Task not found")
+            ).fetchone()
+            
+            if row is None:
+                raise ValueError(f"No task found with ID {task_id}")
+                
+            task = cls(row[1], row[2], row[4])  # title, description, priority
+            task.id = row[0]
+            task.status = row[3]
+            task.created_at = row[5]
+            task.updated_at = row[6]
+            return task
 
     def set_status(self, status):
         if status not in self.STATUS_OPTIONS:

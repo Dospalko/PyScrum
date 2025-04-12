@@ -1,6 +1,19 @@
 import pytest
+import os
 from pyscrum.backlog import Backlog
 from pyscrum.task import Task
+from pyscrum.database import init_db
+
+
+@pytest.fixture(autouse=True)
+def setup_database():
+    """Setup a fresh database for each test."""
+    if os.path.exists("pyscrum.db"):
+        os.remove("pyscrum.db")
+    init_db()
+    yield
+    if os.path.exists("pyscrum.db"):
+        os.remove("pyscrum.db")
 
 
 def test_add_task():
@@ -14,16 +27,20 @@ def test_add_task():
 
 def test_add_duplicate_task():
     backlog = Backlog()
+    
+    # Create first task
     task = Task("Duplicate Task")
-    task_id = task.id  # Store the ID
+    task_id = task.id
     backlog.add_task(task)
     
-    # Try to add the same task again
-    same_task = Task("Duplicate Task")
-    same_task.id = task_id  # Set the same ID
-    backlog.add_task(same_task)
-
-    assert len(backlog.tasks) == 1  # Should not add twice
+    # Create second task with same ID
+    duplicate_task = Task("Duplicate Task")
+    duplicate_task.id = task_id  # Force same ID
+    backlog.add_task(duplicate_task)
+    
+    # Verify only one task exists
+    assert len(backlog.tasks) == 1
+    assert backlog.tasks[0].id == task_id
 
 
 def test_remove_existing_task():

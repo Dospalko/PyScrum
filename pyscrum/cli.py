@@ -138,6 +138,16 @@ def export_sprint_report(name: str):
     except Exception as e:
         typer.echo(f"❌ Failed to export sprint report: {e}")
 
-
+@app.command()
+def add_to_sprint(task_id: str, sprint_name: str):
+    """Add a task to a sprint."""
+    try:
+        task = Task.load_by_prefix(task_id)
+        sprint = Sprint.from_name(sprint_name)
+        sprint.add_task(task)
+        typer.echo(f"✅ Task {task.id} added to sprint '{sprint_name}'")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
+        
 if __name__ == "__main__":
     app()

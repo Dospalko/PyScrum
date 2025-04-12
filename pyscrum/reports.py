@@ -24,7 +24,7 @@ def export_tasks_to_csv(filename: str = "tasks_report.csv") -> None:
         with get_connection() as conn:
             cursor = conn.execute(
                 """
-                SELECT id, title, description, status, 
+                SELECT id, title, description, status, priority,
                        created_at, updated_at
                 FROM tasks
                 ORDER BY created_at DESC
@@ -35,7 +35,7 @@ def export_tasks_to_csv(filename: str = "tasks_report.csv") -> None:
         with open(filename, mode="w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
             writer.writerow([
-                "Task ID", "Title", "Description", "Status",
+                "Task ID", "Title", "Description", "Status", "Priority",
                 "Created", "Last Updated"
             ])
             writer.writerows(tasks)
@@ -75,6 +75,7 @@ def export_sprint_report_to_csv(
                     t.title,
                     t.description,
                     t.status,
+                    t.priority,
                     t.created_at,
                     t.updated_at,
                     COUNT(c.id) as comments
@@ -92,7 +93,7 @@ def export_sprint_report_to_csv(
         with open(filename, mode="w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
             writer.writerow([
-                "Task ID", "Title", "Description", "Status",
+                "Task ID", "Title", "Description", "Status", "Priority",
                 "Created", "Last Updated", "Comments"
             ])
             if sprint_tasks:
@@ -121,6 +122,7 @@ def export_tasks_to_html(filename: str = "tasks_report.html") -> None:
                     t.title,
                     t.description,
                     t.status,
+                    t.priority,
                     t.created_at,
                     t.updated_at,
                     COUNT(c.id) as comments
@@ -174,6 +176,7 @@ def export_sprint_report_to_html(
                     t.title,
                     t.description,
                     t.status,
+                    t.priority,
                     t.created_at,
                     t.updated_at,
                     COUNT(c.id) as comments
@@ -260,9 +263,10 @@ def _render_html(title: str, tasks: List[Tuple], extra_stats: dict) -> str:
             <td>{escape(str(t[1]))}</td>
             <td>{escape(str(t[2]))}</td>
             <td class="status-{t[3]}">{escape(str(t[3]))}</td>
-            <td>{escape(str(t[4]))}</td>
+            <td class="priority-{t[4]}">{escape(str(t[4]))}</td>
             <td>{escape(str(t[5]))}</td>
-            <td>{t[6]}</td>
+            <td>{escape(str(t[6]))}</td>
+            <td>{t[7] if len(t) > 7 else ''}</td>
         </tr>
         """
         for t in tasks
@@ -279,52 +283,23 @@ def _render_html(title: str, tasks: List[Tuple], extra_stats: dict) -> str:
             </ul>
         </div>
     """
-    
+
     return f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>{escape(title)}</title>
         <style>
-            body {{
-                font-family: Arial, sans-serif;
-                margin: 20px;
-                background-color: #f5f5f5;
-            }}
-            .container {{
-                max-width: 1200px;
-                margin: 0 auto;
-                background-color: white;
-                padding: 20px;
-                border-radius: 5px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }}
-            table {{
-                border-collapse: collapse;
-                width: 100%;
-                margin-top: 20px;
-            }}
-            th, td {{
-                border: 1px solid #ddd;
-                padding: 12px 8px;
-                text-align: left;
-            }}
-            th {{
-                background-color: #f8f9fa;
-                font-weight: bold;
-            }}
-            tr:nth-child(even) {{
-                background-color: #f8f9fa;
-            }}
-            .stats {{
-                margin: 20px 0;
-                padding: 15px;
-                background-color: #f8f9fa;
-                border-radius: 5px;
-            }}
+            body {{ font-family: Arial, sans-serif; margin: 20px; }}
+            table {{ border-collapse: collapse; width: 100%; margin-top: 20px; }}
+            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+            th {{ background-color: #f5f5f5; }}
             .status-done {{ color: green; }}
             .status-in_progress {{ color: orange; }}
             .status-todo {{ color: red; }}
+            .priority-high {{ font-weight: bold; color: #d9534f; }}
+            .priority-medium {{ color: #f0ad4e; }}
+            .priority-low {{ color: #5bc0de; }}
             h2 {{ color: #333; }}
             .timestamp {{
                 color: #666;
@@ -343,6 +318,7 @@ def _render_html(title: str, tasks: List[Tuple], extra_stats: dict) -> str:
                     <th>Title</th>
                     <th>Description</th>
                     <th>Status</th>
+                    <th>Priority</th>
                     <th>Created</th>
                     <th>Updated</th>
                     <th>Comments</th>

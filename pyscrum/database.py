@@ -25,14 +25,15 @@ def init_db():
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
                 description TEXT,
-                status TEXT NOT NULL
+                status TEXT NOT NULL,
+                priority TEXT DEFAULT 'medium'
             );
 
             CREATE TABLE IF NOT EXISTS sprints (
                 name TEXT PRIMARY KEY,
-                status TEXT DEFAULT 'Planned'
+                status TEXT DEFAULT 'Planned',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-
 
             CREATE TABLE IF NOT EXISTS sprint_tasks (
                 sprint_name TEXT,

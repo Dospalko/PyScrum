@@ -4,7 +4,8 @@ from .database import get_connection
 
 class Task:
     STATUS_OPTIONS = {"todo", "in_progress", "done"}
-
+    PRIORITY_OPTIONS = {"high", "medium", "low"}
+    
     def __init__(self, title, description="", status="todo", task_id=None):
         self.id = task_id or str(uuid.uuid4())
         self.title = title

@@ -192,5 +192,26 @@ def edit_task(
         typer.echo(f"✅ Task {task.id} updated")
     except ValueError as e:
         typer.echo(f"❌ {e}")
+
+@app.command()
+def sprint_stats(sprint_name: str):
+    """Show sprint statistics."""
+    try:
+        sprint = Sprint.from_name(sprint_name)
+        total = len(sprint.tasks)
+        done = len([t for t in sprint.tasks if t.status == "done"])
+        in_progress = len([t for t in sprint.tasks if t.status == "in_progress"])
+        todo = len([t for t in sprint.tasks if t.status == "todo"])
+        
+        typer.echo(f"📊 Sprint '{sprint_name}' statistics:")
+        typer.echo(f"Total tasks: {total}")
+        typer.echo(f"Done: {done}")
+        typer.echo(f"In Progress: {in_progress}")
+        typer.echo(f"Todo: {todo}")
+        if total > 0:
+            progress = (done / total) * 100
+            typer.echo(f"Progress: {progress:.1f}%")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
 if __name__ == "__main__":
     app()

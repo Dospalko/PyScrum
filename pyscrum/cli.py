@@ -173,5 +173,24 @@ def list_sprint_tasks(sprint_name: str):
             typer.echo(f" - {task}")
     except ValueError as e:
         typer.echo(f"❌ {e}")     
+
+
+@app.command()
+def edit_task(
+    task_id: str,
+    title: str = typer.Option(None, help="New task title"),
+    description: str = typer.Option(None, help="New task description"),
+):
+    """Edit task title or description."""
+    try:
+        task = Task.load_by_prefix(task_id)
+        if title:
+            task.title = title
+        if description:
+            task.description = description
+        task.save()
+        typer.echo(f"✅ Task {task.id} updated")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
 if __name__ == "__main__":
     app()

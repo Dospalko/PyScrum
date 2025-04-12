@@ -5,22 +5,23 @@ from .database import get_connection
 class Task:
     STATUS_OPTIONS = {"todo", "in_progress", "done"}
     PRIORITY_OPTIONS = {"high", "medium", "low"}
-    
-    def __init__(self, title, description="", status="todo", task_id=None):
+
+    def __init__(self, title, description="", status="todo", task_id=None, priority="medium"):
         self.id = task_id or str(uuid.uuid4())
         self.title = title
         self.description = description
         self.status = status
+        self.priority = priority
 
     def save(self):
         """Persist task to database."""
         with get_connection() as conn:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO tasks (id, title, description, status)
-                VALUES (?, ?, ?, ?)
+                INSERT OR REPLACE INTO tasks (id, title, description, status, priority)
+                VALUES (?, ?, ?, ?, ?)
             """,
-                (self.id, self.title, self.description, self.status),
+                (self.id, self.title, self.description, self.status, self.priority),
             )
 
     @staticmethod
@@ -28,12 +29,14 @@ class Task:
         """Load task from database."""
         with get_connection() as conn:
             cursor = conn.execute(
-                "SELECT id, title, description, status FROM tasks WHERE id=?",
+                "SELECT id, title, description, status, priority FROM tasks WHERE id=?",
                 (task_id,),
             )
             row = cursor.fetchone()
             if row:
-                return Task(row[1], row[2], row[3], row[0])
+                task = Task(row[1], row[2], row[3], row[0])
+                task.priority = row[4]
+                return task
             else:
                 raise ValueError("Task not found")
 

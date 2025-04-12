@@ -3,6 +3,8 @@ import pytest
 from typer.testing import CliRunner
 from pyscrum.cli import app
 from pyscrum.database import init_db
+from pyscrum.task import Task
+from pyscrum.sprint import Sprint
 
 runner = CliRunner()
 
@@ -256,3 +258,42 @@ def test_export_sprint_report_with_status_changes():
     # Cleanup
     os.remove(csv_file)
     os.remove(html_file)
+
+
+def test_init():
+    result = runner.invoke(app, ["init"])
+    assert result.exit_code == 0
+    assert "✅ Database initialized" in result.stdout
+
+
+def test_add_task():
+    runner.invoke(app, ["init"])
+    result = runner.invoke(app, ["add-task", "Test Task", "--description", "Test Description", "--priority", "high"])
+    assert result.exit_code == 0
+    assert "✅ Task added" in result.stdout
+
+
+def test_invalid_priority():
+    result = runner.invoke(app, ["add-task", "Test Task", "--priority", "invalid"])
+    assert result.exit_code == 0
+    assert "❌ Priority must be one of: low, medium, high" in result.stdout
+
+
+def test_list_tasks_empty():
+    runner.invoke(app, ["init"])
+    result = runner.invoke(app, ["list-tasks"])
+    assert "📭 No tasks in backlog" in result.stdout
+
+
+def test_sprint_stats():
+    runner.invoke(app, ["init"])
+    runner.invoke(app, ["create-sprint", "Test Sprint"])
+    result = runner.invoke(app, ["sprint-stats", "Test Sprint"])
+    assert "📊 Sprint 'Test Sprint' statistics:" in result.stdout
+
+
+def test_export_sprint_report():
+    runner.invoke(app, ["init"])
+    runner.invoke(app, ["create-sprint", "Test Sprint"])
+    result = runner.invoke(app, ["export-sprint-report", "Test Sprint"])
+    assert "📤 Exported sprint" in result.stdout

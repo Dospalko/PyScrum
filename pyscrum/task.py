@@ -124,6 +124,14 @@ class Task:
             task = Task(row[1], row[2], row[3], row[0])
             task.priority = row[4]
             return task
+    
+    def set_priority(self, priority):
+        """Set task priority."""
+        priority = priority.lower()
+        if priority not in self.PRIORITY_OPTIONS:
+            raise ValueError(f"Invalid priority. Must be one of: {', '.join(self.PRIORITY_OPTIONS)}")
+        self.priority = priority
+        self.save()
 
     def __repr__(self):
-        return f"<Task {self.id[:8]}: {self.title} [{self.status}]>"
+        return f"<Task {self.id}: {self.title} ({self.status}) [{self.priority}]>"

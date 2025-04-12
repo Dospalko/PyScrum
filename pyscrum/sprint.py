@@ -1,9 +1,12 @@
 import sqlite3
+from datetime import datetime
 from .database import get_connection
 from .task import Task
 
 
 class Sprint:
+    VALID_STATUSES = {"Planned", "In Progress", "Completed", "Archived"}
+
     def __init__(self, name):
         self.name = name
         self.status = "Planned"
@@ -140,7 +143,8 @@ class Sprint:
             pass
 
     def __repr__(self):
-        return f"<Sprint {self.name}: {len(self.tasks)} tasks>"
+        stats = self.get_statistics()
+        return f"<Sprint {self.name}: {len(self.tasks)} tasks, {stats['progress']:.1f}% complete>"
 
     @classmethod
     def delete(cls, name):
@@ -201,9 +205,33 @@ class Sprint:
         return filtered
 
     def archive(self):
-        """Mark sprint as archived."""
+        """Archive the sprint."""
+        if self.status == "Archived":
+            return
+        
         self.status = "Archived"
         self.save()
+
+    def get_statistics(self):
+        """Get sprint statistics."""
+        total = len(self.tasks)
+        done = len([t for t in self.tasks if t.status == "done"])
+        in_progress = len([t for t in self.tasks if t.status == "in_progress"])
+        todo = len([t for t in self.tasks if t.status == "todo"])
+        
+        progress = (done / total * 100) if total > 0 else 0
+        
+        return {
+            "total": total,
+            "done": done,
+            "in_progress": in_progress,
+            "todo": todo,
+            "progress": progress
+        }
+
+    def get_tasks_by_priority(self, priority):
+        """Get tasks with specified priority."""
+        return [task for task in self.tasks if task.priority == priority]
 
     @classmethod
     def from_name_prefix(cls, prefix: str):

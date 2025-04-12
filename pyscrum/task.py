@@ -78,45 +78,52 @@ class Task:
         return results
 
     @staticmethod
-    def list_all(status=None):
-        """Return all tasks from DB, optionally filtered by status."""
-        tasks = []
-        try:
-            with get_connection() as conn:
-                if status:
-                    cursor = conn.execute(
-                        "SELECT id, title, description, status FROM tasks WHERE status=?",
-                        (status,),
-                    )
-                else:
-                    cursor = conn.execute(
-                        "SELECT id, title, description, status FROM tasks"
-                    )
-                for row in cursor.fetchall():
-                    tasks.append(Task(row[1], row[2], row[3], row[0]))
-        except sqlite3.OperationalError:
-            pass
-        return tasks
+    def list_all(status=None, priority=None):
+        """List all tasks, optionally filtered by status and/or priority."""
+        with get_connection() as conn:
+            query = "SELECT id, title, description, status, priority FROM tasks"
+            conditions = []
+            params = []
+            
+            if status:
+                conditions.append("status = ?")
+                params.append(status)
+            if priority:
+                conditions.append("priority = ?")
+                params.append(priority)
+                
+            if conditions:
+                query += " WHERE " + " AND ".join(conditions)
+                
+            cursor = conn.execute(query, params)
+            tasks = []
+            for row in cursor.fetchall():
+                task = Task(row[1], row[2], row[3], row[0])
+                task.priority = row[4]
+                tasks.append(task)
+            return tasks
 
     @staticmethod
-    def load_by_prefix(prefix: str):
-        """Load task by ID prefix (min. 4 chars)."""
-        if len(prefix) < 4:
-            raise ValueError("Prefix too short, must be at least 4 characters.")
-
+    def load_by_prefix(prefix):
+        """Load task by ID prefix (at least 3 chars)."""
+        if len(prefix) < 3:
+            raise ValueError("Prefix must be at least 3 characters long")
+        
         with get_connection() as conn:
             cursor = conn.execute(
-                "SELECT id, title, description, status FROM tasks WHERE id LIKE ?",
+                "SELECT id, title, description, status, priority FROM tasks WHERE id LIKE ?",
                 (f"{prefix}%",),
             )
-            matches = cursor.fetchall()
-            if not matches:
-                raise ValueError("Task not found.")
-            if len(matches) > 1:
-                raise ValueError("Multiple tasks match the prefix.")
-
-            row = matches[0]
-            return Task(row[1], row[2], row[3], row[0])
+            rows = cursor.fetchall()
+            if not rows:
+                raise ValueError(f"No task found with prefix '{prefix}'")
+            if len(rows) > 1:
+                raise ValueError(f"Multiple tasks found with prefix '{prefix}'")
+            
+            row = rows[0]
+            task = Task(row[1], row[2], row[3], row[0])
+            task.priority = row[4]
+            return task
 
     def __repr__(self):
         return f"<Task {self.id[:8]}: {self.title} [{self.status}]>"

@@ -3,7 +3,8 @@ import os
 from pyscrum.backlog import Backlog
 from pyscrum.task import Task
 from pyscrum.database import init_db
-
+import sqlite3
+from pyscrum.database import get_connection
 
 @pytest.fixture(autouse=True)
 def setup_database():
@@ -127,3 +128,67 @@ def test_backlog_clear():
     backlog.add_task(Task("Test 2"))
     backlog.clear()
     assert len(backlog.tasks) == 0
+
+
+
+@pytest.fixture(autouse=True)
+def clean_backlog():
+    try:
+        with get_connection() as conn:
+            conn.execute("DELETE FROM backlog_tasks")
+    except sqlite3.OperationalError:
+        pass
+
+def test_add_and_get_task():
+    backlog = Backlog()
+    task = Task("Important task")
+    backlog.add_task(task)
+
+    fetched = backlog.get_task(task.id)
+    assert fetched.title == "Important task"
+
+def test_add_duplicate_task():
+    backlog = Backlog()
+    task = Task("Duplicate task")
+    backlog.add_task(task)
+    backlog.add_task(task)  # should not raise error or duplicate
+    assert len(backlog.tasks) == 1
+
+def test_add_task_as_string():
+    backlog = Backlog()
+    backlog.add_task("Quick task")
+    assert any(task.title == "Quick task" for task in backlog.tasks)
+
+def test_remove_existing_task():
+    backlog = Backlog()
+    task = Task("Removable")
+    backlog.add_task(task)
+    backlog.remove_task(task.id)
+    assert task not in backlog.tasks
+
+def test_remove_invalid_task():
+    backlog = Backlog()
+    with pytest.raises(ValueError):
+        backlog.remove_task("nonexistent-id")
+
+def test_clear_backlog():
+    backlog = Backlog()
+    backlog.add_task("Task A")
+    backlog.clear()
+    assert backlog.tasks == []
+
+def test_repr_format():
+    backlog = Backlog()
+    backlog.add_task("Visualize this")
+    assert "Backlog" in repr(backlog)
+
+def test_load_backlog():
+    task = Task("Load Me")
+    task.save()
+
+    backlog = Backlog()
+    backlog.add_task(task)
+
+    loaded = Backlog.load()
+    ids = [t.id for t in loaded.tasks]
+    assert task.id in ids

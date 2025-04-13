@@ -248,7 +248,7 @@ class Sprint:
             "todo": todo,
             "progress": progress
         }
-
+    
     def get_tasks_by_priority(self, priority):
         """Get tasks with specified priority."""
         return [task for task in self.tasks if task.priority == priority]

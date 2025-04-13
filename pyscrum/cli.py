@@ -228,6 +228,17 @@ def set_priority(task_id: str, priority: str = typer.Option(..., help="high/medi
         typer.echo(f"✅ Task {task.id} priority set to {priority}")
     except ValueError as e:
         typer.echo(f"❌ {e}")
+@app.command()
+def remove_from_sprint(task_id: str, sprint_name: str):
+    """Remove a task from a sprint."""
+    try:
+        sprint = Sprint.from_name_prefix(sprint_name)
+        task = Task.load_by_prefix(task_id)
+        sprint.remove_task(task)
+        sprint.save()  # Ulož zmeny
+        typer.echo(f"🗑️ Task '{task.title}' removed from sprint '{sprint.name}'.")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
 
 @app.command()
 def list_by_priority(priority: str):

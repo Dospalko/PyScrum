@@ -1,6 +1,7 @@
 import pytest
 from pyscrum.sprint import Sprint
 from pyscrum.task import Task
+import sqlite3
 
 @pytest.fixture
 def clean_sprint():
@@ -191,3 +192,59 @@ def test_sprint_remove_task(clean_sprint):
     assert any(t.id == task.id for t in clean_sprint.tasks)
     clean_sprint.remove_task(task)
     assert all(t.id != task.id for t in clean_sprint.tasks)
+
+def test_sprint_start_and_complete(clean_sprint):
+    assert clean_sprint.status == "Planned"
+    clean_sprint.start()
+    assert clean_sprint.status == "In Progress"
+    clean_sprint.complete()
+    assert clean_sprint.status == "Completed"
+
+def test_sprint_archive(clean_sprint):
+    clean_sprint.archive()
+    assert clean_sprint.status == "Archived"
+
+    # Try archiving again – should be no-op
+    clean_sprint.archive()
+    assert clean_sprint.status == "Archived"
+
+def test_add_task_duplicate(clean_sprint):
+    task = Task("Duplicate Task")
+    clean_sprint.add_task(task)
+    clean_sprint.add_task(task)  # should not duplicate
+    assert clean_sprint.tasks.count(task) == 1
+
+def test_add_task_invalid_type(clean_sprint):
+    with pytest.raises(TypeError):
+        clean_sprint.add_task("not a task")
+
+def test_remove_task_by_id(clean_sprint):
+    task = Task("Remove by ID")
+    clean_sprint.add_task(task)
+    clean_sprint.remove_task(task.id)
+    assert task not in clean_sprint.tasks
+
+def test_sprint_repr_empty(clean_sprint):
+    # No tasks added
+    output = repr(clean_sprint)
+    assert "0 tasks" in output
+    assert "0.0% complete" in output
+
+def test_get_tasks_by_status_invalid(clean_sprint):
+    # Should return empty list, not error
+    results = clean_sprint.get_tasks_by_status("nonexistent_status")
+    assert isinstance(results, list)
+    assert len(results) == 0
+
+def test_get_tasks_by_priority_none(clean_sprint):
+    task = Task("No Priority")
+    clean_sprint.add_task(task)
+    results = clean_sprint.get_tasks_by_priority("high")
+    assert results == []  # none matches
+
+def test_sprint_database_error_on_load(monkeypatch):
+    def broken_conn():
+        raise sqlite3.OperationalError("Simulated DB error")
+    monkeypatch.setattr("pyscrum.sprint.get_connection", broken_conn)
+    with pytest.raises(RuntimeError):
+        Sprint.from_name("FailMe")

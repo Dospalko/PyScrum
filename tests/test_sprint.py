@@ -135,3 +135,59 @@ def test_sprint_get_statistics():
     assert stats["done"] == 1
     assert stats["todo"] == 1
     assert stats["progress"] == 50.0
+
+def test_sprint_repr(clean_sprint):
+    task = Task("Repr Test")
+    task.set_status("done")
+    clean_sprint.add_task(task)
+    repr_output = repr(clean_sprint)
+    assert "Test Sprint" in repr_output
+    assert "100.0% complete" in repr_output
+
+def test_sprint_from_name_and_delete():
+    Sprint.clear_all()
+    s = Sprint("LoadMe")
+    s.save()
+    loaded = Sprint.from_name("LoadMe")
+    assert loaded.name == "LoadMe"
+    Sprint.delete("LoadMe")
+    with pytest.raises(ValueError):
+        Sprint.from_name("LoadMe")
+
+def test_sprint_update_name():
+    s = Sprint("OldName")
+    s.save()
+    s.update_name("NewName")
+    assert s.name == "NewName"
+    loaded = Sprint.from_name("NewName")
+    assert loaded.name == "NewName"
+
+def test_sprint_from_prefix_unique():
+    Sprint.clear_all()
+    Sprint("AlphaSprint").save()
+    loaded = Sprint.from_name_prefix("Alph")
+    assert loaded.name == "AlphaSprint"
+
+def test_sprint_from_prefix_too_short():
+    with pytest.raises(ValueError):
+        Sprint.from_name_prefix("Al")
+
+def test_sprint_from_prefix_ambiguous():
+    Sprint.clear_all()
+    Sprint("PrefixOne").save()
+    Sprint("PrefixTwo").save()
+    with pytest.raises(ValueError):
+        Sprint.from_name_prefix("Pre")
+
+def test_sprint_clear_all():
+    Sprint("Temp1").save()
+    Sprint("Temp2").save()
+    Sprint.clear_all()
+    assert len(Sprint.list_all()) == 0
+
+def test_sprint_remove_task(clean_sprint):
+    task = Task("Removable")
+    clean_sprint.add_task(task)
+    assert any(t.id == task.id for t in clean_sprint.tasks)
+    clean_sprint.remove_task(task)
+    assert all(t.id != task.id for t in clean_sprint.tasks)

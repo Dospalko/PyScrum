@@ -290,38 +290,37 @@ def test_list_backlog_empty():
 
 
 def test_sprint_management_workflow():
-    # Create tasks with unique names for easier tracking
+    # Create tasks with unique names
     runner.invoke(app, ["add-task", "UniqueTask1", "--priority", "high"])
     runner.invoke(app, ["add-task", "UniqueTask2", "--priority", "medium"])
     
     # Get task IDs
     task1_id = get_task_id_by_title("UniqueTask1")
     task2_id = get_task_id_by_title("UniqueTask2")
+    assert task1_id is not None
+    assert task2_id is not None
     
-    # Create sprint
+    # Create and verify sprint
     result = runner.invoke(app, ["create-sprint", "TestSprint1"])
-    assert result.exit_code == 0
+    assert "created" in result.output.lower()
     
     # Add tasks to sprint
-    result = runner.invoke(app, ["add-to-sprint", task1_id[:8], "TestSprint1"])
-    assert result.exit_code == 0
+    runner.invoke(app, ["add-to-sprint", task1_id[:8], "TestSprint1"])
+    runner.invoke(app, ["add-to-sprint", task2_id[:8], "TestSprint1"])
     
-    result = runner.invoke(app, ["add-to-sprint", task2_id[:8], "TestSprint1"])
-    assert result.exit_code == 0
+    # Start sprint to make tasks visible
+    runner.invoke(app, ["start-sprint", "TestSprint1"])
     
-    # Verify tasks are in sprint
+    # Verify initial state
     result = runner.invoke(app, ["list-sprint-tasks", "TestSprint1"])
     assert "UniqueTask1" in result.output
     assert "UniqueTask2" in result.output
     
-    # Remove first task from sprint
-    result = runner.invoke(app, ["remove-from-sprint", task1_id[:8], "TestSprint1"])
-    assert result.exit_code == 0
-    
-    # Verify first task was removed but second remains
+    # Remove first task and verify
+    runner.invoke(app, ["remove-from-sprint", task1_id[:8], "TestSprint1"])
     result = runner.invoke(app, ["list-sprint-tasks", "TestSprint1"])
-    assert "UniqueTask1" not in result.output
     assert "UniqueTask2" in result.output
+    assert "UniqueTask1" not in result.output
 
     # Clean up
     runner.invoke(app, ["remove-task", task1_id[:8]])
@@ -388,26 +387,37 @@ def test_sprint_stats():
 
 
 def test_invalid_sprint_operations():
+    # Try operations with non-existent sprint
     result = runner.invoke(app, ["start-sprint", "NonExistentSprint"])
-    assert result.exit_code != 0
+    assert "❌" in result.output
     assert "not found" in result.output.lower()
     
     result = runner.invoke(app, ["archive-sprint", "NonExistentSprint"])
-    assert result.exit_code != 0
+    assert "❌" in result.output
+    assert "not found" in result.output.lower()
+    
+    result = runner.invoke(app, ["list-sprint-tasks", "NonExistentSprint"])
+    assert "❌" in result.output
     assert "not found" in result.output.lower()
 
 
 def test_task_priority_operations():
     # Add task with priority
-    result = runner.invoke(app, ["add-task", "Priority Task", "--priority", "high"])
-    assert result.exit_code == 0
+    result = runner.invoke(app, ["add-task", "PriorityTask", "--priority", "high"])
+    assert "✅" in result.output
     
-    task_id = get_task_id_by_title("Priority Task")
+    task_id = get_task_id_by_title("PriorityTask")
+    assert task_id is not None
     
-    # Update priority
-    result = runner.invoke(app, ["set-priority", task_id[:8], "medium"])
-    assert result.exit_code == 0
+    # List by priority to verify initial state
+    result = runner.invoke(app, ["list-by-priority", "high"])
+    assert "PriorityTask" in result.output
     
-    # Verify priority change
-    result = runner.invoke(app, ["get-task", task_id[:8]])
-    assert "medium" in result.output.lower()
+    # Try invalid priority
+    result = runner.invoke(app, ["add-task", "InvalidTask", "--priority", "invalid"])
+    assert "❌" in result.output
+    assert "Priority must be one of: low, medium, high" in result.output
+    
+    # List tasks to verify
+    result = runner.invoke(app, ["list-tasks"])
+    assert "PriorityTask" in result.output

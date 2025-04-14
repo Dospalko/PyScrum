@@ -445,6 +445,27 @@ def test_task_priority_operations():
     result = runner.invoke(app, ["list-tasks"])
     assert "PriorityTask" in result.output
 
+def test_duplicate_sprint_creation():
+    """Test that duplicate sprint names are properly handled"""
+    # First creation should succeed
+    result1 = runner.invoke(app, ["create-sprint", "DuplicateSprint"])
+    assert result1.exit_code == 0
+    assert "✅ Sprint 'DuplicateSprint' created" in result1.output
+    
+    # Second creation with same name should fail
+    result2 = runner.invoke(app, ["create-sprint", "DuplicateSprint"])
+    assert result2.exit_code == 0  # Command should complete but with error message
+    assert "❌ Sprint 'DuplicateSprint' already exists" in result2.output
+    
+    # Verify case sensitivity
+    result3 = runner.invoke(app, ["create-sprint", "duplicatesprint"])
+    assert result3.exit_code == 0
+    assert "✅ Sprint 'duplicatesprint' created" in result3.output
+    
+    # Clean up
+    Sprint.clear_all()
+
+
 # Helper function to verify task exists in sprint
 def verify_task_in_sprint(task_title: str, sprint_name: str) -> bool:
     result = runner.invoke(app, ["list-sprint-tasks", sprint_name])

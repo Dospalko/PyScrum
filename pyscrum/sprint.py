@@ -6,8 +6,24 @@ from .task import Task
 
 class Sprint:
     VALID_STATUSES = {"Planned", "In Progress", "Completed", "Archived"}
+    MAX_NAME_LENGTH = 50  # Maximum allowed length for sprint name
 
-    def __init__(self, name):
+    @staticmethod
+    def validate_name(name: str) -> tuple[bool, str]:
+        """
+        Validate sprint name.
+        Returns (is_valid, error_message)
+        """
+        if not name or name.isspace():
+            return False, "Sprint name cannot be empty"
+        if len(name) > Sprint.MAX_NAME_LENGTH:
+            return False, f"Sprint name cannot be longer than {Sprint.MAX_NAME_LENGTH} characters"
+        return True, ""
+
+    def __init__(self, name: str):
+        is_valid, error_message = self.validate_name(name)
+        if not is_valid:
+            raise ValueError(error_message)
         self.name = name
         self._status = "Planned"  # Use private attribute
         self.tasks = []

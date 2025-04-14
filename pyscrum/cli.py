@@ -49,35 +49,33 @@ def list_tasks():
 
 @app.command()
 def start_sprint(name: str):
-    """Start a sprint (sets status to In Progress)."""
+    """Start a sprint (transition to In Progress)."""
     try:
-        sprint = Sprint.from_name_prefix(name)
+        sprint = Sprint.from_name(name)
         sprint.start()
-        typer.echo(f"🚀 Sprint '{sprint.name}' started.")
+        typer.echo(f"✅ Sprint '{name}' started.")
     except ValueError as e:
         typer.echo(f"❌ {e}")
-
 
 @app.command()
-def set_status(task_id: str, status: str):
-    """Set the status of a task (todo, in_progress, done)."""
+def complete_sprint(name: str):
+    """Complete a sprint."""
     try:
-        task = Task.load_by_prefix(task_id)
-        task.set_status(status)
-        typer.echo(f"✅ Task {task.id} status updated to {status}")
+        sprint = Sprint.from_name(name)
+        sprint.complete()
+        typer.echo(f"✅ Sprint '{name}' completed.")
     except ValueError as e:
         typer.echo(f"❌ {e}")
-
 
 @app.command()
 def archive_sprint(name: str):
-    """Archive a sprint (sets status to Archived)."""
+    """Archive a sprint."""
     try:
         sprint = Sprint.from_name(name)
         sprint.archive()
-        typer.echo(f"📦 Sprint '{name}' archived.")
-    except ValueError:
-        typer.echo(f"❌ Sprint '{name}' not found.")
+        typer.echo(f"✅ Sprint '{name}' archived.")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
 
 
 @app.command()

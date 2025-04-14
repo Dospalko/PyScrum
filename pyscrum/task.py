@@ -15,23 +15,22 @@ class Task:
         self.priority = priority
         self.created_at = datetime.now().isoformat()
         self.updated_at = datetime.now().isoformat()
-        self.tags = []
         self.save()
 
     def save(self):
+        """Persist task to database."""
         self.updated_at = datetime.now().isoformat()
-        tags_str = ",".join(self.tags)
+        
         with get_connection() as conn:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO tasks 
-                (id, title, description, status, priority, created_at, updated_at, tags) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (id, title, description, status, priority, created_at, updated_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (self.id, self.title, self.description, self.status, 
-                self.priority, self.created_at, self.updated_at, tags_str),
+                 self.priority, self.created_at, self.updated_at),
             )
-
 
     @classmethod
     def load(cls, task_id):

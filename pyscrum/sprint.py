@@ -308,3 +308,17 @@ class Sprint:
                 conn.execute("DELETE FROM sprint_tasks")
         except sqlite3.OperationalError:
             pass
+
+    @classmethod
+    def exists(cls, name: str) -> bool:
+        """Check if a sprint with the given name already exists."""
+        try:
+            with get_connection() as conn:
+                cursor = conn.execute(
+                    "SELECT COUNT(*) FROM sprints WHERE name=?", 
+                    (name,)
+                )
+                count = cursor.fetchone()[0]
+                return count > 0
+        except sqlite3.OperationalError:
+            return False

@@ -466,6 +466,29 @@ def test_duplicate_sprint_creation():
     Sprint.clear_all()
 
 
+def test_sprint_name_validation():
+    """Test sprint name validation rules"""
+    # Test empty name
+    result1 = runner.invoke(app, ["create-sprint", ""])
+    assert "❌ Sprint name cannot be empty" in result1.output
+
+    # Test whitespace-only name
+    result2 = runner.invoke(app, ["create-sprint", "   "])
+    assert "❌ Sprint name cannot be empty" in result2.output
+
+    # Test name that's too long (51 characters)
+    long_name = "x" * 51
+    result3 = runner.invoke(app, ["create-sprint", long_name])
+    assert "❌ Sprint name cannot be longer than 50 characters" in result3.output
+
+    # Test valid name
+    result4 = runner.invoke(app, ["create-sprint", "Valid Sprint Name"])
+    assert "✅ Sprint 'Valid Sprint Name' created" in result4.output
+
+    # Clean up
+    Sprint.clear_all()
+
+
 # Helper function to verify task exists in sprint
 def verify_task_in_sprint(task_title: str, sprint_name: str) -> bool:
     result = runner.invoke(app, ["list-sprint-tasks", sprint_name])

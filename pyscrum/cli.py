@@ -106,9 +106,16 @@ def list_tasks_by_status(status: str):
 @app.command()
 def create_sprint(name: str):
     """Create a new sprint."""
-    sprint = Sprint(name)
-    sprint.save()
-    typer.echo(f"✅ Sprint '{name}' created.")
+    try:
+        if Sprint.exists(name):
+            typer.echo(f"❌ Sprint '{name}' already exists.")
+            return
+        
+        sprint = Sprint(name)
+        sprint.save()
+        typer.echo(f"✅ Sprint '{name}' created.")
+    except Exception as e:
+        typer.echo(f"❌ Failed to create sprint: {e}")
 
 
 @app.command()

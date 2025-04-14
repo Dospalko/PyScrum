@@ -107,6 +107,13 @@ def list_tasks_by_status(status: str):
 def create_sprint(name: str):
     """Create a new sprint."""
     try:
+        # First validate the name
+        is_valid, error_message = Sprint.validate_name(name)
+        if not is_valid:
+            typer.echo(f"❌ {error_message}")
+            return
+
+        # Then check for duplicates
         if Sprint.exists(name):
             typer.echo(f"❌ Sprint '{name}' already exists.")
             return

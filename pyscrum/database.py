@@ -18,6 +18,15 @@ def get_connection():
 def init_db():
     """Initialize the database schema."""
     with get_connection() as conn:
+        # Check if the 'tags' column exists and migrate if needed
+        columns = conn.execute("PRAGMA table_info(tasks)").fetchall()
+        existing_columns = {col[1] for col in columns}
+
+        if 'tags' not in existing_columns:
+            # Recreate the tasks table with 'tags' if it's missing
+            conn.execute("DROP TABLE IF EXISTS tasks")
+
+        # Create updated tasks table with tags support
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS tasks (
@@ -27,10 +36,13 @@ def init_db():
                 status TEXT DEFAULT 'todo',
                 priority TEXT DEFAULT 'medium',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                tags TEXT DEFAULT ''
             )
             """
         )
+
+        # Other tables
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS sprints (

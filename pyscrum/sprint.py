@@ -6,12 +6,6 @@ from .task import Task
 
 class Sprint:
     VALID_STATUSES = {"Planned", "In Progress", "Completed", "Archived"}
-    VALID_TRANSITIONS = {
-        "Planned": {"In Progress"},
-        "In Progress": {"Completed"},
-        "Completed": {"Archived"},
-        "Archived": set()  # No transitions allowed from Archived
-    }
     MAX_NAME_LENGTH = 50  # Maximum allowed length for sprint name
 
     @staticmethod
@@ -36,23 +30,14 @@ class Sprint:
         self._load_tasks()
 
     @property
-    def status(self) -> str:
+    def status(self):
         return self._status
 
     @status.setter
-    def status(self, new_status: str) -> None:
-        new_status = new_status.title()  # Normalize status string
-        if new_status not in self.VALID_STATUSES:
+    def status(self, value):
+        if value not in self.VALID_STATUSES:
             raise ValueError(f"Invalid status. Must be one of: {', '.join(self.VALID_STATUSES)}")
-        
-        if new_status != self._status:
-            if new_status not in self.VALID_TRANSITIONS[self._status]:
-                raise ValueError(
-                    f"Invalid status transition from '{self._status}' to '{new_status}'. "
-                    f"Valid transitions are: {', '.join(self.VALID_TRANSITIONS[self._status])}"
-                )
-            
-        self._status = new_status
+        self._status = value
         self.save()
 
     def _load_tasks(self):
@@ -153,17 +138,15 @@ class Sprint:
         """Return all tasks in the sprint."""
         return self.tasks
 
-    def start(self) -> None:
-        """Start the sprint (transition to In Progress)"""
+    def start(self):
+        """Mark sprint as started."""
         self.status = "In Progress"
+        self.save()
 
-    def complete(self) -> None:
-        """Complete the sprint"""
+    def complete(self):
+        """Mark sprint as completed."""
         self.status = "Completed"
-
-    def archive(self) -> None:
-        """Archive the sprint"""
-        self.status = "Archived"
+        self.save()
 
     def update_name(self, new_name):
         """Update the sprint name in the DB and memory."""
@@ -247,6 +230,14 @@ class Sprint:
                 Path(filename).write_text(html, encoding="utf-8")
 
         return filtered
+
+    def archive(self):
+        """Archive the sprint."""
+        if self.status == "Archived":
+            return
+        
+        self.status = "Archived"
+        self.save()
 
     def get_statistics(self):
         """Get sprint statistics."""

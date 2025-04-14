@@ -49,33 +49,35 @@ def list_tasks():
 
 @app.command()
 def start_sprint(name: str):
-    """Start a sprint (transition to In Progress)."""
+    """Start a sprint (sets status to In Progress)."""
     try:
-        sprint = Sprint.from_name(name)
+        sprint = Sprint.from_name_prefix(name)
         sprint.start()
-        typer.echo(f"✅ Sprint '{name}' started.")
+        typer.echo(f"🚀 Sprint '{sprint.name}' started.")
     except ValueError as e:
         typer.echo(f"❌ {e}")
 
+
 @app.command()
-def complete_sprint(name: str):
-    """Complete a sprint."""
+def set_status(task_id: str, status: str):
+    """Set the status of a task (todo, in_progress, done)."""
     try:
-        sprint = Sprint.from_name(name)
-        sprint.complete()
-        typer.echo(f"✅ Sprint '{name}' completed.")
+        task = Task.load_by_prefix(task_id)
+        task.set_status(status)
+        typer.echo(f"✅ Task {task.id} status updated to {status}")
     except ValueError as e:
         typer.echo(f"❌ {e}")
+
 
 @app.command()
 def archive_sprint(name: str):
-    """Archive a sprint."""
+    """Archive a sprint (sets status to Archived)."""
     try:
         sprint = Sprint.from_name(name)
         sprint.archive()
-        typer.echo(f"✅ Sprint '{name}' archived.")
-    except ValueError as e:
-        typer.echo(f"❌ {e}")
+        typer.echo(f"📦 Sprint '{name}' archived.")
+    except ValueError:
+        typer.echo(f"❌ Sprint '{name}' not found.")
 
 
 @app.command()
@@ -104,14 +106,13 @@ def list_tasks_by_status(status: str):
 @app.command()
 def create_sprint(name: str):
     """Create a new sprint."""
-    try:
-        # First validate the name
-        is_valid, error_message = Sprint.validate_name(name)
-        if not is_valid:
-            typer.echo(f"❌ {error_message}")
-            return
+    # First validate the name
+    is_valid, error_message = Sprint.validate_name(name)
+    if not is_valid:
+        typer.echo(f"❌ {error_message}")
+        return
 
-        # Then check for duplicates
+    try:
         if Sprint.exists(name):
             typer.echo(f"❌ Sprint '{name}' already exists.")
             return

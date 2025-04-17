@@ -279,6 +279,15 @@ def is_high_priority(task_id: str):
     except ValueError as e:
         typer.echo(f"❌ {e}")
 
-
+@app.command()
+def toggle_status(task_id: str):
+    """Toggle task status (todo → in_progress → done → todo)."""
+    try:
+        task = Task.load_by_prefix(task_id)
+        task.toggle_status()
+        typer.echo(task.status)
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
+        
 if __name__ == "__main__":
     app()

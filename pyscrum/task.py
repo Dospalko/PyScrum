@@ -224,5 +224,13 @@ class Task:
         # prepočet sekúnd na dni
         return delta.total_seconds() / 86400
     
+    def age_in_seconds(self):
+        """
+        Vráti počet sekúnd, ktoré ubehli od vytvorenia úlohy.
+        """
+        created_dt = datetime.fromisoformat(self.created_at)
+        delta = datetime.now() - created_dt
+        return delta.total_seconds()
+    
     def __repr__(self):
         return f"<Task {self.id}: {self.title} ({self.status}) [{self.priority}]>"

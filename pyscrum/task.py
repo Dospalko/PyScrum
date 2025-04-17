@@ -211,6 +211,18 @@ class Task:
         # ulož do DB
         self.save()
         return self
+
+    def age_in_days(self):
+        """
+        Vráti počet dní (vrátane desatinnej časti) 
+        ktoré ubehli od vytvorenia úlohy.
+        """
+        # parsed = datetime objekt z uloženého ISO reťazca
+        created_dt = datetime.fromisoformat(self.created_at)
+        # rozdiel medzi teraz a časom vytvorenia
+        delta = datetime.now() - created_dt
+        # prepočet sekúnd na dni
+        return delta.total_seconds() / 86400
     
     def __repr__(self):
         return f"<Task {self.id}: {self.title} ({self.status}) [{self.priority}]>"

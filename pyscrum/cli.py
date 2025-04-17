@@ -288,6 +288,14 @@ def toggle_status(task_id: str):
         typer.echo(task.status)
     except ValueError as e:
         typer.echo(f"❌ {e}")
-        
+
+@app.command()
+def age_in_days(task_id: str):
+    """Show number of days since task creation."""
+    try:
+        task = Task.load_by_prefix(task_id)
+        typer.echo(f"{task.age_in_days():.2f}")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
 if __name__ == "__main__":
     app()

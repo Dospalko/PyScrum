@@ -186,6 +186,13 @@ class Task:
             raise ValueError("Priority must be one of: low, medium, high")
         self.priority = priority
         self.save()
+    
+    def is_high_priority(self):
+        """
+        Skontroluje, či je priorita úlohy nastavená na 'high'.
+        Vracia True, ak áno, inak False.
+        """
+        return self.priority == "high"
 
     def __repr__(self):
         return f"<Task {self.id}: {self.title} ({self.status}) [{self.priority}]>"

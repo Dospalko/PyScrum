@@ -270,5 +270,15 @@ def list_by_priority(priority: str):
     typer.echo(f"📋 Tasks with {priority} priority:")
     for task in priority_tasks:
         typer.echo(f" - {task}")
+@app.command()
+def is_high_priority(task_id: str):
+    """Check if a task has high priority."""
+    try:
+        task = Task.load_by_prefix(task_id)
+        typer.echo(task.is_high_priority())
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
+
+
 if __name__ == "__main__":
     app()

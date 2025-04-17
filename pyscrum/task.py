@@ -194,5 +194,23 @@ class Task:
         """
         return self.priority == "high"
 
+    def toggle_status(self):
+        """
+        Preklikne status úlohy:
+        - "todo"       → "in_progress"
+        - "in_progress"→ "done"
+        - "done"       → "todo"
+        Uloží zmenu do DB a vráti self pre prípadné chainovanie.
+        """
+        # poradie statusov
+        order = ["todo", "in_progress", "done"]
+        # nájdi aktuálny index a preklikni na ďalší (s wrap-around)
+        current_idx = order.index(self.status)
+        new_idx = (current_idx + 1) % len(order)
+        self.status = order[new_idx]
+        # ulož do DB
+        self.save()
+        return self
+    
     def __repr__(self):
         return f"<Task {self.id}: {self.title} ({self.status}) [{self.priority}]>"

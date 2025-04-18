@@ -306,6 +306,21 @@ def age_in_seconds(task_id: str):
         typer.echo(f"{int(task.age_in_seconds())}")
     except ValueError as e:
         typer.echo(f"❌ {e}")
+
+
+@app.command()
+def search_sprint_tasks(sprint_name: str, query: str):
+    """Search tasks in sprint by title or description (case-insensitive)."""
+    try:
+        sprint = Sprint.from_name(sprint_name)
+        matches = sprint.search_tasks(query)
+        if not matches:
+            typer.echo("No matching tasks found.")
+            return
+        for task in matches:
+            typer.echo(f" - {task}")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
         
 if __name__ == "__main__":
     app()

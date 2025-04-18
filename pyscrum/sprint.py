@@ -339,6 +339,24 @@ class Sprint:
             if task.priority in counts:
                 counts[task.priority] += 1
         return counts
+    
+    def group_tasks_by_status(self) -> dict[str, list[Task]]:
+        """
+        Zgrupuje úlohy podľa ich statusu.
+        Vracia dict, kde kľúč je status a hodnota je zoznam Task.
+        Napríklad:
+        {
+          "todo": [Task1, Task3],
+          "in_progress": [Task2],
+          "done": []
+        }
+        """
+        # pripravíme prázdne skupiny pre všetky možné statusy
+        groups = {status: [] for status in Task.STATUS_OPTIONS}
+        # roztriedime
+        for task in self.tasks:
+            groups.get(task.status, []).append(task)
+        return groups
     @classmethod
     def clear_all(cls):
         """Clear all sprints from the database."""

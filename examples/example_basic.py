@@ -33,3 +33,12 @@ print("\n📈 Sprint overview:")
 print(sprint)
 for task in sprint.tasks:
     print(" -", task)
+
+# --- Nové: vyhľadávanie úloh v sprinte podľa textu ---
+print("\n🔍 Searching sprint tasks for 'Design':")
+matches = sprint.search_tasks("Design")
+if matches:
+    for t in matches:
+        print(" -", t)
+else:
+    print("No matches found.")

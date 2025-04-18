@@ -332,5 +332,18 @@ def count_tasks_by_priority(sprint_name: str):
             typer.echo(f"{prio}: {num}")
     except ValueError as e:
         typer.echo(f"❌ {e}")
+
+@app.command()
+def group_tasks_by_status(sprint_name: str):
+    """Group tasks in sprint by status."""
+    try:
+        sprint = Sprint.from_name(sprint_name)
+        groups = sprint.group_tasks_by_status()
+        for status, tasks in groups.items():
+            typer.echo(f"{status} ({len(tasks)}):")
+            for t in tasks:
+                typer.echo(f"  - {t}")
+    except ValueError as e:
+        typer.echo(f"❌ {e}")
 if __name__ == "__main__":
     app()

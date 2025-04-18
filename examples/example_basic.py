@@ -54,3 +54,12 @@ for prio, num in counts.items():
 #   - high: 3
 #   - medium: 5
 #   - low: 2
+
+sprint = Sprint.from_name("Sprint 1")
+groups = sprint.group_tasks_by_status()
+
+print("📊 Tasks by status:")
+for status, tasks in groups.items():
+    print(f" - {status} ({len(tasks)}):")
+    for t in tasks:
+        print(f"    • {t}")

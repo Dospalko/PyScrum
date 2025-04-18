@@ -314,6 +314,19 @@ class Sprint:
         except sqlite3.OperationalError:
             pass
         return sprints
+    
+    def search_tasks(self, query: str) -> list[Task]:
+        """
+        Vyhľadá všetky úlohy v tomto sprinte,
+        ktorých názov alebo popis obsahuje zadaný reťazec (case‑insensitive).
+        Vracia zoznam Task objektov.
+        """
+        q = query.lower()
+        return [
+            task
+            for task in self.tasks
+            if q in task.title.lower() or q in task.description.lower()
+        ]
 
     @classmethod
     def clear_all(cls):

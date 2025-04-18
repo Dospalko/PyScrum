@@ -328,6 +328,17 @@ class Sprint:
             if q in task.title.lower() or q in task.description.lower()
         ]
 
+    def count_tasks_by_priority(self) -> dict[str, int]:
+        """
+        Vráti slovník {priority: počet úloh} pre tento sprint.
+        Napríklad: {"high": 2, "medium": 5, "low": 1}.
+        """
+        # inicializuj počítadlo pre všetky možné priority
+        counts = {p: 0 for p in Task.PRIORITY_OPTIONS}
+        for task in self.tasks:
+            if task.priority in counts:
+                counts[task.priority] += 1
+        return counts
     @classmethod
     def clear_all(cls):
         """Clear all sprints from the database."""

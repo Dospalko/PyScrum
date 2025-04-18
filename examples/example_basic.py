@@ -42,3 +42,15 @@ if matches:
         print(" -", t)
 else:
     print("No matches found.")
+
+
+sprint = Sprint.from_name("Sprint 1")
+# predpokladáme, že už máš do sprintu pridelené nejaké úlohy
+counts = sprint.count_tasks_by_priority()
+print("📊 Tasks by priority:")
+for prio, num in counts.items():
+    print(f"  - {prio}: {num}")
+# Výstup môže byť napr.:
+#   - high: 3
+#   - medium: 5
+#   - low: 2

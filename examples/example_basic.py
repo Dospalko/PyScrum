@@ -1,65 +1,67 @@
+from datetime import date, timedelta
 from pyscrum.database import init_db
 from pyscrum.task import Task
 from pyscrum.backlog import Backlog
-from pyscrum.sprint import Sprint
 
-print("⏳ Initializing database...")
-init_db()
+def setup_sample_tasks():
+    """Vytvorí a pridá do backlogu ukážkové úlohy so statusmi, prioritami, tagmi a dátumami."""
+    init_db()
+    backlog = Backlog()
+    backlog.clear()
 
-print("\n📋 Creating backlog and tasks...")
-backlog = Backlog()
-task1 = Task("Implement login", "Google + Email")
-task2 = Task("Design database", "Initial schema")
-task3 = Task("Build API", "RESTful endpoints")
+    task1 = Task("Task 1", "High priority, done", priority="high")
+    task1.set_status("done")
+    task1.tags = ["urgent", "dev"]
+  
+    task2 = Task("Task 2", "Medium priority, todo", priority="medium")
+    task2.set_status("todo")
+    task2.tags = ["frontend"]
+   
+    task3 = Task("Task 3", "Low priority, in progress", priority="low")
+    task3.set_status("in_progress")
+    task3.tags = ["backend", "urgent"]
+  
+    for task in [task1, task2, task3]:
+        backlog.add_task(task)
 
-for task in [task1, task2, task3]:
-    task.save()
-    backlog.add_task(task)
+    print("📦 Sample tasks setup complete.\n")
+    return backlog
 
-print("\n✅ Backlog populated:")
-for task in backlog.tasks:
-    print(" -", task)
+def test_filter_by_status(backlog):
+    print("🔍 Tasks with status = 'todo':")
+    for task in backlog.list_by_status("todo"):
+        print(f" - {task}")
+    print()
 
-print("\n🚀 Creating sprint and adding tasks...")
-sprint = Sprint("Sprint 1")
-sprint.add_task(task1)
-sprint.add_task(task2)
+def test_filter_by_priority(backlog):
+    print("🔍 Tasks with priority = 'high':")
+    for task in backlog.list_by_priority("high"):
+        print(f" - {task}")
+    print()
 
-print("\n📝 Updating task statuses...")
-task1.set_status("in_progress")
-task2.set_status("todo")
+def test_find_by_tag(backlog):
+    print("🏷️ Tasks with tag = 'urgent':")
+    for task in backlog.find_by_tag("urgent"):
+        print(f" - {task}")
+    print()
 
-print("\n📈 Sprint overview:")
-print(sprint)
-for task in sprint.tasks:
-    print(" -", task)
+def test_has_task(backlog):
+    task_id = backlog.tasks[0].id
+    print(f"✅ Has task with id {task_id[:8]}: {backlog.has_task(task_id)}")
+    print(f"❌ Has task with id 'nonexistent': {backlog.has_task('nonexistent')}")
+    print()
 
-# --- Nové: vyhľadávanie úloh v sprinte podľa textu ---
-print("\n🔍 Searching sprint tasks for 'Design':")
-matches = sprint.search_tasks("Design")
-if matches:
-    for t in matches:
-        print(" -", t)
-else:
-    print("No matches found.")
+def test_count_by_status(backlog):
+    print("📊 Task counts by status:")
+    counts = backlog.count_by_status()
+    for status, count in counts.items():
+        print(f" - {status}: {count}")
+    print()
 
-
-sprint = Sprint.from_name("Sprint 1")
-# predpokladáme, že už máš do sprintu pridelené nejaké úlohy
-counts = sprint.count_tasks_by_priority()
-print("📊 Tasks by priority:")
-for prio, num in counts.items():
-    print(f"  - {prio}: {num}")
-# Výstup môže byť napr.:
-#   - high: 3
-#   - medium: 5
-#   - low: 2
-
-sprint = Sprint.from_name("Sprint 1")
-groups = sprint.group_tasks_by_status()
-
-print("📊 Tasks by status:")
-for status, tasks in groups.items():
-    print(f" - {status} ({len(tasks)}):")
-    for t in tasks:
-        print(f"    • {t}")
+if __name__ == "__main__":
+    backlog = setup_sample_tasks()
+    test_filter_by_status(backlog)
+    test_filter_by_priority(backlog)
+    test_find_by_tag(backlog)
+    test_has_task(backlog)
+    test_count_by_status(backlog)

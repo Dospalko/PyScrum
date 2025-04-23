@@ -107,6 +107,11 @@ class Backlog:
     def find_by_tag(self, tag: str):
         """Return tasks that contain the given tag."""
         return [task for task in self.tasks if hasattr(task, 'tags') and tag in task.tags]
+    
+    def sort_by_due_date(self):
+        """Return tasks sorted by due date (None at the end)."""
+        return sorted(self.tasks, key=lambda t: t.due_date or datetime.max)
+
 
     def __repr__(self):
         return f"<Backlog: {len(self.tasks)} tasks pending>"

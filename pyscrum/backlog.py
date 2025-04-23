@@ -112,6 +112,10 @@ class Backlog:
         """Return tasks sorted by due date (None at the end)."""
         return sorted(self.tasks, key=lambda t: t.due_date or datetime.max)
 
+    def has_task(self, task_id: str):
+        """Check if a task with the given ID is in the backlog."""
+        return any(task.id == task_id for task in self.tasks)
+
 
     def __repr__(self):
         return f"<Backlog: {len(self.tasks)} tasks pending>"

@@ -104,6 +104,9 @@ class Backlog:
             raise ValueError("Invalid priority")
         return [task for task in self.tasks if task.priority == priority]
 
+    def find_by_tag(self, tag: str):
+        """Return tasks that contain the given tag."""
+        return [task for task in self.tasks if hasattr(task, 'tags') and tag in task.tags]
 
     def __repr__(self):
         return f"<Backlog: {len(self.tasks)} tasks pending>"

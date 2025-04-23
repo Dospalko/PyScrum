@@ -92,5 +92,11 @@ class Backlog:
         except sqlite3.OperationalError:
             pass
 
+    def list_by_status(self, status: str):
+        """Return list of tasks filtered by status."""
+        if status not in Task.STATUS_OPTIONS:
+            raise ValueError("Invalid status")
+        return [task for task in self.tasks if task.status == status]
+
     def __repr__(self):
         return f"<Backlog: {len(self.tasks)} tasks pending>"

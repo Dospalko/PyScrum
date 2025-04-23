@@ -97,6 +97,13 @@ class Backlog:
         if status not in Task.STATUS_OPTIONS:
             raise ValueError("Invalid status")
         return [task for task in self.tasks if task.status == status]
+    
+    def list_by_priority(self, priority: str):
+        """Return list of tasks filtered by priority."""
+        if priority not in Task.PRIORITY_OPTIONS:
+            raise ValueError("Invalid priority")
+        return [task for task in self.tasks if task.priority == priority]
+
 
     def __repr__(self):
         return f"<Backlog: {len(self.tasks)} tasks pending>"

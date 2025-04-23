@@ -116,6 +116,14 @@ class Backlog:
         """Check if a task with the given ID is in the backlog."""
         return any(task.id == task_id for task in self.tasks)
 
+    def count_by_status(self):
+        """Count how many tasks are in each status."""
+        counts = {status: 0 for status in Task.STATUS_OPTIONS}
+        for task in self.tasks:
+            if task.status in counts:
+                counts[task.status] += 1
+        return counts
+
 
     def __repr__(self):
         return f"<Backlog: {len(self.tasks)} tasks pending>"
